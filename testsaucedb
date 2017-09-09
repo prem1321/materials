@@ -1,0 +1,174 @@
+public class Qh {
+	ITestResult result;
+	WebDriver driver=null;
+	public static DesiredCapabilities desiredcapabilities ;
+	ObjectMap objmap;
+	String fname;
+	String lname;
+	String useraccount;
+	String Sauce_SessionID = null;
+	
+	//String uname;
+	String  tcID = null ,add1 = null ,city= null,State= null,Fname= null ,resultsID = null
+			   ,Lname= null,DocType= null,AlienNumber= null,
+	   I94_Number= null,  CaseNumber= null,ParoleExpiredDate= null,ReceiptNumber= null,
+	   zip= null,state_code= null,dob= null,sep= null,sep_type= null,
+	   StateName= null,TenantID= null,Income= null,Execute= null,source= null,sn= null,NoticeType= null
+,Phone= null,Enroll= null,BackendProcessing =null;
+
+	String USERNAME = constant.SAUCEUSERNAME;
+	String ACCESS_KEY = constant.SAUCE_ACCESS_KEY;
+	static String SURL = constant.SAUCE_URL;
+	String ApplicationID;
+	
+	
+	// JDBC driver name and database URL
+	   static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
+	   static final String DB_URL = constant.automn_test;
+
+	   //  Database credentials
+	   static final String USER = constant.mysqluname;
+	   static final String PASS = constant.mysqlpwd;
+	  
+	
+
+@BeforeMethod
+
+public void T1_OpenBrowser() {
+	FirefoxProfile firefoxProfile = new FirefoxProfile();
+    firefoxProfile.setPreference("browser.download.folderList", 2);
+    firefoxProfile.setPreference("browser.download.manager.showWhenStarting", false);
+    firefoxProfile.setPreference("browser.download.dir", "C:\\Users\\T-PSadagopan\\Downloads\\");
+    firefoxProfile.setPreference("browser.helperApps.neverAsk.saveToDisk", "application/pdf");
+    firefoxProfile.setPreference("pdfjs.disabled", true);
+    firefoxProfile.setPreference("plugin.scan.Acrobat", "99.0");
+    firefoxProfile.setPreference("plugin.scan.plid.all", false);
+    		 
+    desiredcapabilities = DesiredCapabilities.firefox();
+    	desiredcapabilities.setCapability(FirefoxDriver.PROFILE, firefoxProfile);
+         desiredcapabilities.setCapability("platform", "Windows 7");
+         desiredcapabilities.setCapability("version", "31.0");
+         //desiredCapabilities.setCapability("maxDuration",5000);
+         //desiredCapabilities.setCapability("idleTimeout",1000);
+         desiredcapabilities.setCapability("name", "QHP_Apps2HH");
+
+         
+      
+   
+}   
+	   
+	   
+		   
+///returns column values
+	@Test (timeOut=10000)
+	@Parameters("sql")
+	public void T2_login(String sql) throws Exception {
+		System.setProperty("org.apache.commons.logging.Log","org.apache.commons.logging.impl.Jdk14Logger");  
+		Exceldataconfig excelfile = new Exceldataconfig(constant.Datafilepath);	
+		ObjectMap objmap = new ObjectMap (constant.ObjectPath);		
+		
+		resultsID =RandomStringGen.generateString(17);
+			  // mysql_mdnl mdnl = new mysql_mdnl();
+		   
+	      String uniqueID = "1"+ System.currentTimeMillis(); //UUID.randomUUID().toString();
+	     	//System.out.println(uniqueID);
+	     		   Connection conn = null;
+	     		   Statement stmt = null;
+	     		   String testcaseid = sql;
+	     		   try{
+	     		      //STEP 2: Register JDBC driver
+	     		      Class.forName("com.mysql.jdbc.Driver");
+
+	     		      //STEP 3: Open a connection
+	     		    //  System.out.println("Connecting to a selected database...");
+	     		      conn = DriverManager.getConnection(DB_URL, USER, PASS);
+	     		    //  System.out.println("Connected database successfully...");
+	     		      
+	     		      //STEP 4: Execute a query
+	     		     // System.out.println("Creating statement...");
+	     		      stmt = conn.createStatement();
+
+	     		      
+	     		     
+	     		         ResultSet rs = stmt.executeQuery(sql);
+	     			      
+	     		      //STEP 5: Extract data from result set
+	     		      while(rs.next()){
+	     		         //Retrieve by column name
+	     		          
+	     		    	    tcID=rs.getString("PayloadAppID");
+	     		    	    add1=rs.getString("StreetAddress");
+	     		    	    city=rs.getString("City");
+	     		    	    State=rs.getString("State");
+	     		    	    zip=rs.getString("ZipCode");
+	     		    	   state_code =rs.getString("State_Code");
+	     		    	   dob =rs.getString("DOB");
+	     		    	   sep =rs.getString("SEP_EventDate");
+	     		    	   sep_type =rs.getString("SEP_Type");
+	     		    	   StateName =rs.getString("State_Name");
+	     		    	   TenantID =rs.getString("TenantID");
+	     		    	   Income =rs.getString("Income");
+	     		    	   Execute =rs.getString("Execute");
+	     		    	   source =rs.getString("Through_FFM");
+	     		    	   sn =rs.getString("SN");
+	     		    	   NoticeType =rs.getString("NoticeType");
+	     		    	  Phone =rs.getString("Phone");
+	     		    	  Enroll =rs.getString("Enrollment_Flag");
+	     		    	   //BackendProcessing =rs.getString("BackendProcessing");
+	     		    	   Fname = rs.getString("Fname");
+	     		    	   Lname = rs.getString("Lname");
+	     		    	   DocType = rs.getString("DocType");
+	     		    	   AlienNumber=rs.getString("AlienNumber");
+	     		    	   I94_Number = rs.getString("I94_Number");
+	     		    	   CaseNumber = rs.getString("CaseNumber");
+	     		    	   ParoleExpiredDate=rs.getString("ParoleExpiredDate");
+	     	               ReceiptNumber = rs.getString("ReceiptNumber");
+	     	               
+	     		    	   
+	     		         
+	     		         
+	     		         
+	     		      }
+	     		      rs.close();
+	     		   }catch(SQLException se){
+	     		      //Handle errors for JDBC
+	     		      se.printStackTrace();
+	     		   }catch(Exception e){
+	     		      //Handle errors for Class.forName
+	     		      e.printStackTrace();
+	     		   }finally{
+	     		      //finally block used to close resources
+	     		      try{
+	     		         if(stmt!=null)
+	     		            conn.close();
+	     		      }catch(SQLException se){
+	     		      }// do nothing
+	     		      try{
+	     		         if(conn!=null)
+	     		            conn.close();
+	     		      }catch(SQLException se){
+	     		         se.printStackTrace();
+	     		      }//end finally try
+	     		   }//end try
+	     		   //System.out.println("Goodbye!");
+if(Execute.startsWith("N"))
+{
+ throw new SkipException("Skipping this exception");
+}
+	     			
+if(Execute.startsWith("Y") )
+{
+	
+	mysql sq = new mysql();
+    useraccount = sq.read_db();    
+   		
+    if(source.startsWith("appname"))  {
+    	
+    	driver = new RemoteWebDriver(new URL(constant.SAUCE_URL), desiredcapabilities); 	   
+    //driver = new FirefoxDriver();
+    	
+    	
+    	SessionId session = ((RemoteWebDriver)driver).getSessionId();
+    	
+    	Sauce_SessionID = "https://saucelabs.com/beta/tests/"+session.toString();
+    driver.get(constant.URL);
