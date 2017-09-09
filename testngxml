@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite thread-count="10" name="Parallel" parallel="tests" >
+  
+<test name="TC81308">
+	  <parameter name="sql" value="SELECT * FROM table_data where Payload = 'TC123'"/>
+	    <classes>
+	      <class name="package.PARALLEL"/>
+	    </classes>
+</test>
