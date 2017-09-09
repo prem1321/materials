@@ -1,0 +1,64 @@
+@Test
+		   public   void Add_Records(String Account,String envir) {
+			   
+			  uniqueID = "1"+ System.currentTimeMillis();
+		   Connection conn = null;
+		   Statement stmt = null;
+		   try{
+		      //STEP 2: Register JDBC driver
+		      Class.forName("com.mysql.jdbc.Driver");
+
+		      //STEP 3: Open a connection
+		      System.out.println("Connecting to a selected database...");
+		      conn = DriverManager.getConnection(DB_URL, USER, PASS);
+		      System.out.println("Connected database successfully...");
+		      
+		      //STEP 4: Execute a query
+		      System.out.println("Creating statement...");
+		      stmt = conn.createStatement();
+		     
+		         // create the java mysql insert
+		       //  String insertquery = "update exceldriven set Indicator = 'N' , updateddatetime = now() where TestCaseID = ?";
+		         
+		         //preparedStmt.setInt   (1, 6000);
+		         //preparedStmt.setTimestamp(1, TestCaseID);
+		      String query =   "INSERT INTO accounts (IDUserAccounts, UserAccountEmailID, AvailableIndicator, Environment,ProjectName,creationdate,createdBy, updateddate,updatedby) "
+		                       +"VALUES (?,?,?,?,?,now(),?,now(),?)";
+		         
+		         
+		      PreparedStatement preparedStmt = conn.prepareStatement(query);
+		         preparedStmt.setString(1, uniqueID);
+		         preparedStmt.setString(2, Account);
+		         preparedStmt.setString(3, "Y");
+		         preparedStmt.setString(4,envir);
+		         preparedStmt.setString(5, "test");
+		         preparedStmt.setString(6, "PK12");
+		         preparedStmt.setString(7, "PK12");
+		         // execute the java preparedstatement
+		         preparedStmt.executeUpdate();  
+		      
+		 // System.out.println("Records Added"+" " +uniqueID+" "+uname+" ");
+		   }catch(SQLException se){
+		      //Handle errors for JDBC
+		      se.printStackTrace();
+		   }catch(Exception e){
+		      //Handle errors for Class.forName
+		      e.printStackTrace();
+		   }finally{
+		      //finally block used to close resources
+		      try{
+		         if(stmt!=null)
+		            conn.close();
+		      }catch(SQLException se){
+		      }// do nothing
+		      try{
+		         if(conn!=null)
+		            conn.close();
+		      }catch(SQLException se){
+		         se.printStackTrace();
+		      }//end finally try
+		   }//end try
+		   System.out.println("Goodbye!");
+		}//end main
+		//end JDBCExample
+	}
