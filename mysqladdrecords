@@ -1,3 +1,12 @@
+/ TODO Auto-generated method stub
+		static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
+		   static final String DB_URL = constant.automn_test;
+
+		   //  Database credentials
+		   static final String USER = constant.mysqluname;
+		   static final String PASS = constant.mysqlpwd;
+
+
 @Test
 		   public   void Add_Records(String Account,String envir) {
 			   
