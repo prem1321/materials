@@ -1,0 +1,1787 @@
+package qhp;
+
+import java.io.IOException;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.SessionId;
+import org.openqa.selenium.support.ui.Select;
+import org.testng.ITestResult;
+import org.testng.SkipException;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+
+import Notices.NOTICES_ENROLLMENT;
+import TestCases.ObjectMap;
+import TestEnvironment.Regions.constant;
+import lib.Exceldataconfig;
+import lib.RandomStringGen;
+import lib.my_sqlladdrecords;
+import lib.my_sqlladdrecords_results;
+import lib.mysql;
+import lib.writeexcelfile;
+
+public class QHP_2HH {
+	ITestResult result;
+	WebDriver driver=null;
+	public static DesiredCapabilities desiredcapabilities ;
+	ObjectMap objmap;
+	String fname;
+	String lname;
+	String useraccount;
+	String Sauce_SessionID = null;
+	
+	//String uname;
+	String  tcID = null ,add1 = null ,city= null,State= null,Fname= null ,resultsID = null
+			   ,Lname= null,DocType= null,AlienNumber= null,
+	   I94_Number= null,  CaseNumber= null,ParoleExpiredDate= null,ReceiptNumber= null,
+	   zip= null,state_code= null,dob= null,sep= null,sep_type= null,
+	   StateName= null,TenantID= null,Income= null,Execute= null,source= null,sn= null,NoticeType= null
+,Phone= null,Enroll= null,BackendProcessing =null;
+
+	String USERNAME = constant.SAUCEUSERNAME;
+	String ACCESS_KEY = constant.SAUCE_ACCESS_KEY;
+	static String SURL = constant.SAUCE_URL;
+	String ApplicationID;
+	
+	
+	// JDBC driver name and database URL
+	   static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
+	   static final String DB_URL = constant.automn_test;
+
+	   //  Database credentials
+	   static final String USER = constant.mysqluname;
+	   static final String PASS = constant.mysqlpwd;
+	  
+	
+
+@BeforeMethod
+
+public void T1_OpenBrowser() {
+	FirefoxProfile firefoxProfile = new FirefoxProfile();
+    firefoxProfile.setPreference("browser.download.folderList", 2);
+    firefoxProfile.setPreference("browser.download.manager.showWhenStarting", false);
+    firefoxProfile.setPreference("browser.download.dir", "C:\\Users\\T-PSadagopan\\Downloads\\");
+    firefoxProfile.setPreference("browser.helperApps.neverAsk.saveToDisk", "application/pdf");
+    firefoxProfile.setPreference("pdfjs.disabled", true);
+    firefoxProfile.setPreference("plugin.scan.Acrobat", "99.0");
+    firefoxProfile.setPreference("plugin.scan.plid.all", false);
+    		 
+    desiredcapabilities = DesiredCapabilities.firefox();
+    	desiredcapabilities.setCapability(FirefoxDriver.PROFILE, firefoxProfile);
+         desiredcapabilities.setCapability("platform", "Windows 7");
+         desiredcapabilities.setCapability("version", "31.0");
+         //desiredCapabilities.setCapability("maxDuration",5000);
+         //desiredCapabilities.setCapability("idleTimeout",1000);
+         desiredcapabilities.setCapability("name", "QHP_Apps2HH");
+
+         
+      
+   
+}   
+	   
+	   
+		   
+///returns column values
+	@Test (timeOut=10000)
+	@Parameters("sql")
+	public void T2_login(String sql) throws Exception {
+		System.setProperty("org.apache.commons.logging.Log","org.apache.commons.logging.impl.Jdk14Logger");  
+		Exceldataconfig excelfile = new Exceldataconfig(constant.Datafilepath);	
+		ObjectMap objmap = new ObjectMap (constant.ObjectPath);		
+		
+		resultsID =RandomStringGen.generateString(17);
+			  // mysql_mdnl mdnl = new mysql_mdnl();
+		   
+	      String uniqueID = "1"+ System.currentTimeMillis(); //UUID.randomUUID().toString();
+	     	//System.out.println(uniqueID);
+	     		   Connection conn = null;
+	     		   Statement stmt = null;
+	     		   String testcaseid = sql;
+	     		   try{
+	     		      //STEP 2: Register JDBC driver
+	     		      Class.forName("com.mysql.jdbc.Driver");
+
+	     		      //STEP 3: Open a connection
+	     		    //  System.out.println("Connecting to a selected database...");
+	     		      conn = DriverManager.getConnection(DB_URL, USER, PASS);
+	     		    //  System.out.println("Connected database successfully...");
+	     		      
+	     		      //STEP 4: Execute a query
+	     		     // System.out.println("Creating statement...");
+	     		      stmt = conn.createStatement();
+
+	     		      
+	     		     
+	     		         ResultSet rs = stmt.executeQuery(sql);
+	     			      
+	     		      //STEP 5: Extract data from result set
+	     		      while(rs.next()){
+	     		         //Retrieve by column name
+	     		          
+	     		    	    tcID=rs.getString("PayloadAppID");
+	     		    	    add1=rs.getString("StreetAddress");
+	     		    	    city=rs.getString("City");
+	     		    	    State=rs.getString("State");
+	     		    	    zip=rs.getString("ZipCode");
+	     		    	   state_code =rs.getString("State_Code");
+	     		    	   dob =rs.getString("DOB");
+	     		    	   sep =rs.getString("SEP_EventDate");
+	     		    	   sep_type =rs.getString("SEP_Type");
+	     		    	   StateName =rs.getString("State_Name");
+	     		    	   TenantID =rs.getString("TenantID");
+	     		    	   Income =rs.getString("Income");
+	     		    	   Execute =rs.getString("Execute");
+	     		    	   source =rs.getString("Through_FFM");
+	     		    	   sn =rs.getString("SN");
+	     		    	   NoticeType =rs.getString("NoticeType");
+	     		    	  Phone =rs.getString("Phone");
+	     		    	  Enroll =rs.getString("Enrollment_Flag");
+	     		    	   //BackendProcessing =rs.getString("BackendProcessing");
+	     		    	   Fname = rs.getString("Fname");
+	     		    	   Lname = rs.getString("Lname");
+	     		    	   DocType = rs.getString("DocType");
+	     		    	   AlienNumber=rs.getString("AlienNumber");
+	     		    	   I94_Number = rs.getString("I94_Number");
+	     		    	   CaseNumber = rs.getString("CaseNumber");
+	     		    	   ParoleExpiredDate=rs.getString("ParoleExpiredDate");
+	     	               ReceiptNumber = rs.getString("ReceiptNumber");
+	     	               
+	     		    	   
+	     		         
+	     		         
+	     		         
+	     		      }
+	     		      rs.close();
+	     		   }catch(SQLException se){
+	     		      //Handle errors for JDBC
+	     		      se.printStackTrace();
+	     		   }catch(Exception e){
+	     		      //Handle errors for Class.forName
+	     		      e.printStackTrace();
+	     		   }finally{
+	     		      //finally block used to close resources
+	     		      try{
+	     		         if(stmt!=null)
+	     		            conn.close();
+	     		      }catch(SQLException se){
+	     		      }// do nothing
+	     		      try{
+	     		         if(conn!=null)
+	     		            conn.close();
+	     		      }catch(SQLException se){
+	     		         se.printStackTrace();
+	     		      }//end finally try
+	     		   }//end try
+	     		   //System.out.println("Goodbye!");
+if(Execute.startsWith("N"))
+{
+ throw new SkipException("Skipping this exception");
+}
+	     			
+if(Execute.startsWith("Y") )
+{
+	
+	mysql sq = new mysql();
+    useraccount = sq.read_db();    
+   		
+    if(source.startsWith("FFM"))  {
+    	
+    	driver = new RemoteWebDriver(new URL(constant.SAUCE_URL), desiredcapabilities); 	   
+    //driver = new FirefoxDriver();
+    	
+    	
+    	SessionId session = ((RemoteWebDriver)driver).getSessionId();
+    	
+    	Sauce_SessionID = "https://saucelabs.com/beta/tests/"+session.toString();
+    driver.get(constant.URL);
+    	
+    	Thread.sleep(5000);
+    	driver.navigate().to(constant.FFMLogin);
+    	Thread.sleep(5000);
+    	
+    	 //useraccount=sql.read_db();
+    	//System.out.println(useraccount);
+    	driver.findElement(ObjectMap.getLocator("username")).sendKeys(useraccount);  //Enter UserID
+    	Thread.sleep(2000);
+    
+    	driver.findElement(ObjectMap.getLocator("pwd")).sendKeys("Test123#"); //Enter password
+    	Thread.sleep(2000);
+    	driver.findElement(ObjectMap.getLocator("login")).click();
+    	Thread.sleep(25000);
+    	driver.navigate().to(constant.FFMLandingPage);
+    	Thread.sleep(10000);
+    	
+
+
+    	Select Year = new Select(driver.findElement(ObjectMap.getLocator("FFMYear")));
+    	Year.selectByVisibleText(constant.CYear);
+
+    	Select StDropdown  =  new Select(driver.findElement(ObjectMap.getLocator("FFMState")));
+    	StDropdown.selectByVisibleText(TenantID); 
+
+    	driver.findElement(ObjectMap.getLocator("Apply")).click();
+    	Thread.sleep(15000);
+    	driver.findElement(ObjectMap.getLocator("Next")).click();
+    	Thread.sleep(5000);
+    	driver.findElement(ObjectMap.getLocator("chk1")).click();
+    	driver.findElement(ObjectMap.getLocator("chk2")).click();
+    	driver.findElement(ObjectMap.getLocator("navtoapp")).click();
+    	Thread.sleep(2000);
+
+    Thread.sleep(15000);
+
+    driver.navigate().to(constant.IndAppURL1+state_code+constant.IndAppURL3);
+
+    Thread.sleep(15000);
+    //GetStarted Page
+    				WebElement elemnt2 =	driver.findElement(ObjectMap.getLocator("getstarted"));
+    				JavascriptExecutor executor2 = (JavascriptExecutor) driver;
+    				executor2.executeScript ("arguments[0].click();" , elemnt2);
+    				
+    				Thread.sleep(10000);
+    				   driver.findElement(ObjectMap.getLocator("privacypolicy")).click();
+    					driver.findElement(ObjectMap.getLocator("proofagree")).click();
+    					driver.findElement(ObjectMap.getLocator("ppsandc")).click();	
+    					 Thread.sleep(15000);	
+    					driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);		
+    					driver.findElement(ObjectMap.getLocator("contacthomeno")).click();			
+    					
+    				Thread.sleep(5000);			
+    		
+    }
+    if(source.startsWith("ESD"))
+    {
+    	driver.navigate().to(constant.ESDLanding);
+    		
+    	Thread.sleep(15000);
+    	
+    	
+    	driver.findElement(By.xpath("//input[@id='acceptButton']")).click();
+    	
+    	Thread.sleep(5000);
+    //driver.findElement(By.xpath("//a[@class='cmsButtonLogin']")).click();
+    	
+    	Thread.sleep(5000);
+    	
+    	driver.findElement(By.xpath("//input[@id='input_userID']")).sendKeys(constant.ESDLogin);
+    	
+    	Thread.sleep(5000);
+    	
+    	driver.findElement(By.xpath("//input[@id='input-password']")).sendKeys(constant.ESDPw);
+    	
+    	Thread.sleep(5000);
+    	
+    	driver.findElement(By.xpath("//input[@id='buttonUserID']")).click();
+    	
+    	Thread.sleep(5000);
+    						
+    	
+    Thread.sleep(5000);	
+
+    driver.findElement(By.xpath("//a[contains(.,'Individual Application')]")).click();
+    Thread.sleep(5000);
+
+    driver.findElement(By.xpath("//a[@class='startNewPaperApplicationsLink']")).click();
+    Thread.sleep(5000);
+    Select iEsdCoverageYearDropdown = new Select(driver.findElement(By.xpath("//select[@id='startNewAppModalCoverageYear']")));
+           iEsdCoverageYearDropdown.selectByVisibleText(constant.CYear);
+        
+           Thread.sleep(5000);
+           Select iStDropDown = new Select(driver.findElement(By.xpath("//select[@class='ffmTenantStateDropdown']")))  ;
+    	   iStDropDown.selectByVisibleText(State);
+    	   
+    	   Thread.sleep(5000);
+    	   	   
+    	   driver.findElement(By.xpath("//button[@id='startNewApplicationSubmit']")).click();
+    	   Thread.sleep(10000);
+    	   String parentWindow = driver.getWindowHandle();
+    		Set<String> handles =  driver.getWindowHandles();
+    		Thread.sleep(5000);
+    for(String windowHandle  : handles)
+    {
+    		 if(!windowHandle.equals(parentWindow))
+    {
+    		          driver.switchTo().window(windowHandle);
+    		    Thread.sleep(8000);
+    		    
+    		   
+    			Thread.sleep(15000);
+    			//GetStarted Page
+    						WebElement CCRelemnt2 =	driver.findElement(By.xpath("//button[@id='getStartedNextButton']"));
+    						 JavascriptExecutor CCRexecutor2 = (JavascriptExecutor) driver;
+    						 CCRexecutor2.executeScript ("arguments[0].click();" , CCRelemnt2);
+    						 
+    						 Thread.sleep(10000);
+    						    
+    		  
+    							driver.findElement(By.xpath("//input[@id='contactFirstName']")).sendKeys(Fname);
+    							
+    							driver.findElement(By.xpath("//input[@id='contactLastName']")).sendKeys(Lname);
+    							
+    							driver.findElement(By.id("contactDateOfBirth")).click();
+    							driver.findElement(By.id("contactDateOfBirth")).sendKeys(dob);
+    							driver.findElement(By.id("contactEmailAddress")).sendKeys("ccr"+System.currentTimeMillis()+"@yopmail.com");
+    									
+    }}
+    	   
+    	   
+    	   
+    }
+    				
+    if(source.startsWith("CCR")) 
+    {
+    		//Pass CCR SAML Token
+    			WebElement CCRSAMLTOKENtextarea = (WebElement) ((JavascriptExecutor) driver).executeScript(constant.CCRClearTextField);
+    			CCRSAMLTOKENtextarea.clear();
+    			JavascriptExecutor myExecutor = ((JavascriptExecutor) driver);
+    			myExecutor.executeScript(constant.CCRSAML, CCRSAMLTOKENtextarea);
+    			Thread.sleep(10000);
+
+    		//Navigate to CCR 	
+    				
+    			
+    			WebElement CCRServiceBtn = (WebElement) ((JavascriptExecutor) driver).executeScript(constant.CCRTokenForm); // Change here
+    				CCRServiceBtn.click();
+    				Thread.sleep(5000);
+    				
+    				String parentWindow = driver.getWindowHandle();
+    				Set<String> handles =  driver.getWindowHandles();
+    				Thread.sleep(5000);
+        for(String windowHandle  : handles)
+    	{
+    				 if(!windowHandle.equals(parentWindow))
+    		 {
+    				          driver.switchTo().window(windowHandle);
+    				    Thread.sleep(8000);
+    				    
+    				    
+    				    Select CCRYear = new Select(driver.findElement(ObjectMap.getLocator("FFMYear")));
+    					CCRYear.selectByVisibleText(constant.CYear);
+    					
+    					Select CCRStDropdown  =  new Select(driver.findElement(ObjectMap.getLocator("FFMState")));
+    					CCRStDropdown.selectByVisibleText(State); 
+
+    					driver.findElement(ObjectMap.getLocator("Apply")).click();
+    					driver.findElement(ObjectMap.getLocator("Next")).click();
+    					driver.findElement(ObjectMap.getLocator("chk1")).click();
+    					driver.findElement(ObjectMap.getLocator("chk2")).click();
+    					driver.findElement(ObjectMap.getLocator("navtoapp")).click();
+    					Thread.sleep(5000);
+    					
+    					driver.navigate().to(constant.IndAppURL1+state_code+constant.IndAppURL3);
+
+    					Thread.sleep(15000);
+    					//GetStarted Page
+    								WebElement CCRelemnt2 =	driver.findElement(By.xpath("//button[@id='getStartedNextButton']"));
+    								 JavascriptExecutor CCRexecutor2 = (JavascriptExecutor) driver;
+    								 CCRexecutor2.executeScript ("arguments[0].click();" , CCRelemnt2);
+    								 
+    								 Thread.sleep(10000);
+    								    driver.findElement(By.xpath("//label[@for='privacyPolicyAgree']")).click();
+    									driver.findElement(By.xpath("//label[contains(@for,'proofAgree')]")).click();
+    									driver.findElement(By.xpath("//button[@id='privacyPolicySaveContinue']")).click();	
+    									 Thread.sleep(5000);	
+    									driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);	
+    									Thread.sleep(50000);
+    				  
+    									driver.findElement(By.xpath("//input[@id='contactFirstName']")).sendKeys(Fname);
+    									
+    									driver.findElement(By.xpath("//input[@id='contactLastName']")).sendKeys(Lname);
+    									
+    									driver.findElement(By.id("contactDateOfBirth")).click();
+    									driver.findElement(By.id("contactDateOfBirth")).sendKeys(dob);
+    									String CCREmailAddress= "ccr"+System.currentTimeMillis()+"@message-checker.appspot.com";
+    									driver.findElement(By.id("contactEmailAddress")).sendKeys(CCREmailAddress);
+    									
+    				
+    		 }}
+    	}			
+    	
+    	
+    //ContactInformation
+    //Read State from zipcode data file		
+
+
+
+
+
+    driver.findElement(ObjectMap.getLocator("contactaddstreet1")).sendKeys(add1);
+
+    driver.findElement(ObjectMap.getLocator("contactaddcity")).sendKeys(city);
+    Select St = new Select(driver.findElement(ObjectMap.getLocator("contactAddressState")));
+
+
+    St.selectByVisibleText(State);
+    Thread.sleep(2000);
+    driver.findElement(ObjectMap.getLocator("contactaddzip")).sendKeys(zip);
+    Thread.sleep(2000);	
+
+    try {
+    	driver.findElement(ObjectMap.getLocator("contactmailaddsameno")).click();
+    	Thread.sleep(2000);
+    	driver.findElement(ObjectMap.getLocator("mailaddsamecontact")).click();
+    	driver.findElement(ObjectMap.getLocator("mailaddstreet1")).sendKeys(add1);
+    	driver.findElement(ObjectMap.getLocator("mailaddcity")).sendKeys(city);
+    	Select St1 = new Select(driver.findElement(ObjectMap.getLocator("mailaddstate")));
+    	
+    	
+    	St1.selectByVisibleText(State);
+    	Thread.sleep(2000);
+    	driver.findElement(ObjectMap.getLocator("mailaddzip")).sendKeys(zip);
+    	Thread.sleep(2000);	
+    	driver.findElement(ObjectMap.getLocator("preffcontact")).click();
+    	
+    	Select phoneCnt = new Select(driver.findElement(ObjectMap.getLocator("cntphone")));
+    	phoneCnt.selectByVisibleText("Home");
+    } catch (Exception e2) {
+    	// TODO Auto-generated catch block
+    	driver.findElement(By.xpath("//input[@id='contactMailingAddressStreetName1']")).sendKeys(add1);
+    	driver.findElement(By.xpath("//input[@id='contactMailingAddressCity']")).sendKeys(city);
+    	Select St1 = new Select(driver.findElement(By.id("contactMailingAddressState")));
+    	
+    	
+    	St1.selectByVisibleText(State);
+    	Thread.sleep(2000);
+    	driver.findElement(By.xpath("//input[@id='contactMailingAddressZip']")).sendKeys(zip);
+    	Thread.sleep(2000);	
+    	driver.findElement(By.id("contactPhone")).sendKeys("324-331-6785");
+    	
+    	Select ccrphoneType = new Select(driver.findElement(By.id("contactPhoneTypePrimary")));
+    	ccrphoneType.selectByVisibleText("Home");
+    }
+
+
+    Thread.sleep(5000);	
+    driver.findElement(ObjectMap.getLocator("noticeonline")).click();
+    			
+    			//driver.findElement(By.xpath("//label[contains(.,'Other address')]")).click();
+    			
+    			
+    			
+    			driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS); //wait for 10 seconds to load
+    			
+    		    
+    Thread.sleep(5000);
+
+    		    
+    driver.findElement(ObjectMap.getLocator("cntsandc")).click();		
+    			Thread.sleep(5000);
+    			//driver.findElement(By.id("finishAddressValidation")).click();			
+    			try {
+    				driver.findElement(ObjectMap.getLocator("contactaddressvalidator")).click();
+    				
+    				Thread.sleep(5000);
+    			} catch (Exception e4) {
+    				// TODO Auto-generated catch block
+    				e4.printStackTrace();
+    			}					
+  
+        
+    	Thread.sleep(7000);
+    //Agent Broker Assistance
+    	driver.findElement(ObjectMap.getLocator("navAssistorTypeNone")).click();
+        Thread.sleep(2000);
+    //Agent Broker Assistance - Save And Continue
+         WebElement navigatorAssistance =	driver.findElement(ObjectMap.getLocator("navsandc"));
+    	 JavascriptExecutor navigator = (JavascriptExecutor) driver;
+    	 navigator.executeScript ("arguments[0].click();" , navigatorAssistance);
+    	 Thread.sleep(5000);		
+    	 
+    //Help Applying for coverage 
+          driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
+            
+
+          try {
+    			Select iDropDownByValue = new Select(driver.findElement(ObjectMap.getLocator("navQ1")));
+    			               
+    Thread.sleep(5000);
+    			  iDropDownByValue.selectByIndex(2);
+    			  Thread.sleep(2000);
+    				driver.findElement(ObjectMap.getLocator("navA1")).click();
+    				driver.findElement(ObjectMap.getLocator("navA1")).clear();
+    				driver.findElement(ObjectMap.getLocator("navA1")).sendKeys("New York City");
+    				
+    //Click Save and COntinue      
+    				 WebElement HelpApplying =	driver.findElement(ObjectMap.getLocator("navAQsandc"));
+    				 JavascriptExecutor navigator1 = (JavascriptExecutor) driver;
+    				 navigator1.executeScript ("arguments[0].click();" , HelpApplying);
+    				 
+    				 Thread.sleep(5000);
+    				 driver.findElement(ObjectMap.getLocator("fa")).click();            
+    				  
+    				// Thread.sleep(5000);   
+    				 
+    				 //save and continue
+    				         WebElement FAnonFA =	driver.findElement(ObjectMap.getLocator("fasandc"));
+    						 JavascriptExecutor navigator2 = (JavascriptExecutor) driver;
+    						 navigator2.executeScript ("arguments[0].click();" , FAnonFA);  	        
+    						 Thread.sleep(5000);
+
+    					} catch (Exception e3) {
+    						// TODO Auto-generated catch block
+    						driver.findElement(ObjectMap.getLocator("fa")).click();             
+    						  Thread.sleep(2000);   
+    						 //save and continue
+    						  WebElement FAnonFA =	driver.findElement(ObjectMap.getLocator("fasandc"));
+    							 JavascriptExecutor navigator2 = (JavascriptExecutor) driver;
+    							 navigator2.executeScript ("arguments[0].click();" , FAnonFA);  	        
+    							 Thread.sleep(5000);
+    					}
+    			
+    	Thread.sleep(5000);				 
+    		
+    			         ApplicationID = driver.findElement(ObjectMap.getLocator("getappid")).getText();
+    			        
+    Thread.sleep(2000);  
+
+    //take screenshots FA/non FA         
+    					
+    					
+
+    					
+    //FA or Non-FA	        
+    driver.findElement(ObjectMap.getLocator("fa")).click();            
+    Thread.sleep(1000);   
+    //save and continue
+           WebElement FAnonFA =	driver.findElement(ObjectMap.getLocator("fasandc"));
+    		 JavascriptExecutor navigator2 = (JavascriptExecutor) driver;
+    		 navigator2.executeScript ("arguments[0].click();" , FAnonFA);  	        
+    		 Thread.sleep(5000);
+
+    //1HH Primary Applicant
+           driver.findElement(ObjectMap.getLocator("hhfamily")).click();;
+           Thread.sleep(1000);
+           //save and continue
+           WebElement HH =	driver.findElement(ObjectMap.getLocator("filerpref"));
+    		 JavascriptExecutor navigator3 = (JavascriptExecutor) driver;
+    		 navigator3.executeScript ("arguments[0].click();" , HH);  
+    		 Thread.sleep(5000);
+
+    //Health Coverage        
+           
+    					         
+    					        
+    					        
+    	//Edit Date of birth primary
+    				 driver.findElement(ObjectMap.getLocator("editdob")).click();
+    		         driver.findElement(ObjectMap.getLocator("editApplicantFirstName0")).clear();
+    		         driver.findElement(ObjectMap.getLocator("editApplicantFirstName0")).sendKeys(Fname);
+    		         driver.findElement(ObjectMap.getLocator("editApplicantLastName0")).clear();
+    		         driver.findElement(ObjectMap.getLocator("editApplicantLastName0")).sendKeys(Lname);
+    		         
+    		         driver.findElement(ObjectMap.getLocator("editApplicantDateOfBirth0")).sendKeys(Keys.chord(Keys.CONTROL, "a"), dob);
+    				 Thread.sleep(5000);
+    				 
+    				 WebElement EditSave1 =	driver.findElement(ObjectMap.getLocator("modalsave"));
+    				 JavascriptExecutor Editsavenavigator1 = (JavascriptExecutor) driver;
+    				 Editsavenavigator1.executeScript ("arguments[0].click();" , EditSave1); 
+    		         Thread.sleep(5000);
+    //Add spouse
+    		         driver.findElement(ObjectMap.getLocator("addperson")).click();
+    		         
+    		         
+    		         
+   //Edit Date of birth spouse
+    				 
+    		         driver.findElement(ObjectMap.getLocator("editApplicantFirstName1")).clear();
+    		         driver.findElement(ObjectMap.getLocator("editApplicantFirstName1")).sendKeys("Spouse");
+    		         driver.findElement(ObjectMap.getLocator("editApplicantLastName1")).clear();
+    		         driver.findElement(ObjectMap.getLocator("editApplicantLastName1")).sendKeys(Lname);
+    		         
+    		         driver.findElement(ObjectMap.getLocator("editApplicantDateOfBirth1")).sendKeys(Keys.chord(Keys.CONTROL, "a"), dob);
+    				 Thread.sleep(3000);
+    				 
+    	Select relat= new Select(driver.findElement(ObjectMap.getLocator("applicantrelation")));
+    	       relat.selectByIndex(1);
+    	       Thread.sleep(5000);	 
+    	       
+    				 WebElement EditSave2 =	driver.findElement(ObjectMap.getLocator("addmodalsave"));
+    				 JavascriptExecutor Editsavenavigator2 = (JavascriptExecutor) driver;
+    				 Editsavenavigator2.executeScript ("arguments[0].click();" , EditSave2); 
+    		         Thread.sleep(3000);
+    					         
+    					          //click save and continue
+    		         WebElement HhSummary =	driver.findElement(ObjectMap.getLocator("getstartedsummarysave"));
+    				 JavascriptExecutor navigator4 = (JavascriptExecutor) driver;
+    				 navigator4.executeScript ("arguments[0].click();" , HhSummary);  
+    				 Thread.sleep(5000);					
+    				 try {
+    						driver.findElement(ObjectMap.getLocator("medicaremodal")).click();
+    						Thread.sleep(2000);
+    						WebElement HhChapter =	driver.findElement(ObjectMap.getLocator("fahchapternext"));
+    						 JavascriptExecutor HhchapterExecutor = (JavascriptExecutor) driver;
+    						 HhchapterExecutor.executeScript ("arguments[0].click();" , HhChapter); 
+    				 } 
+    				 
+    				 catch (Exception e1)
+    		         
+    		         {//FAH Chapter
+    					 WebElement HhChapter =	driver.findElement(ObjectMap.getLocator("fahchapternext"));
+    				 JavascriptExecutor HhchapterExecutor = (JavascriptExecutor) driver;
+    				 HhchapterExecutor.executeScript ("arguments[0].click();" , HhChapter); 
+    				 Thread.sleep(2000);  
+    		  driver.findElement(ObjectMap.getLocator("okbtn")).click();
+    						
+    					}
+    				//FAH Chapter
+    				   
+    				 try {
+    						driver.findElement(ObjectMap.getLocator("okbtn")).click();
+    						//FAH Gender
+    						  driver.findElement(ObjectMap.getLocator("fahSexMale0")).click();
+    						   Thread.sleep(1000);
+    						   WebElement HhGenderSave =	driver.findElement(ObjectMap.getLocator("hhgendersave"));
+    								 JavascriptExecutor HhGenderExecutor = (JavascriptExecutor) driver;
+    								 HhGenderExecutor.executeScript ("arguments[0].click();" , HhGenderSave);
+    					} catch (Exception e2) {
+    						// TODO Auto-generated catch block
+    						driver.findElement(ObjectMap.getLocator("fahSexMale0")).click();
+    						 Thread.sleep(1000);
+    						WebElement HhGenderSave =	driver.findElement(ObjectMap.getLocator("hhgendersave"));
+    						 JavascriptExecutor HhGenderExecutor = (JavascriptExecutor) driver;
+    						 HhGenderExecutor.executeScript ("arguments[0].click();" , HhGenderSave); 
+    						
+    						
+    					}
+    				      
+    			       Thread.sleep(4000);		
+    						//Enter Social
+    							 
+    					//driver.findElement(By.id("fahSSNTextboxForApplicant0")).sendKeys("872-90-8029");
+    						
+    									 
+    						       
+    						       
+if(sn.startsWith("None")) {
+				    	     WebElement FAHSN =	driver.findElement(ObjectMap.getLocator("fahSocialSecuritySave0"));
+							 JavascriptExecutor FAHSNExecutor = (JavascriptExecutor) driver;
+							 FAHSNExecutor.executeScript ("arguments[0].click();" , FAHSN); 
+							 
+							 Thread.sleep(5000);
+							 
+							 WebElement FAHPopup =	 driver.findElement(ObjectMap.getLocator("nossn"));
+							 JavascriptExecutor FAHPopUpExecutor = (JavascriptExecutor) driver;
+							 FAHPopUpExecutor.executeScript ("arguments[0].click();" , FAHPopup); 
+							 
+							 Thread.sleep(5000);
+							 driver.findElement(ObjectMap.getLocator("fahImmigrationIsCitizenRadioYes0")).click();
+							 
+							 Thread.sleep(5000);
+							 
+							 WebElement FAHImmigrationSave =	 driver.findElement(ObjectMap.getLocator("fahimmisave"));
+							 JavascriptExecutor FAHImmiExecutor = (JavascriptExecutor) driver;
+							 FAHImmiExecutor.executeScript ("arguments[0].click();" , FAHImmigrationSave); 
+						}	       
+				       
+				       else {
+				    	   driver.findElement(By.id("fahSSNTextboxForApplicant0")).sendKeys(sn);
+					       Thread.sleep(4000);
+					       
+					       WebElement FAHSN =	driver.findElement(ObjectMap.getLocator("fahSocialSecuritySave0"));
+							 JavascriptExecutor FAHSNExecutor = (JavascriptExecutor) driver;
+							 FAHSNExecutor.executeScript ("arguments[0].click();" , FAHSN);
+							 Thread.sleep(5000);
+							 
+							 //US Citizen YES NO
+							 driver.findElement(ObjectMap.getLocator("fahImmigrationIsCitizenRadioYes0")).click();
+							 
+							 Thread.sleep(5000);
+							 
+							 WebElement FAHImmigrationSave =	 driver.findElement(ObjectMap.getLocator("fahimmisave"));
+							 JavascriptExecutor FAHImmiExecutor = (JavascriptExecutor) driver;
+							 FAHImmiExecutor.executeScript ("arguments[0].click();" , FAHImmigrationSave); 
+							 
+							 Thread.sleep(5000);
+							 try {
+								driver.findElement(ObjectMap.getLocator("ssnmodal")).click();
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							 
+							 Thread.sleep(5000); 
+				       }
+				    		 		
+    							
+    								 
+    								 
+    					//Tax file Yes or No for 1HH Application
+    								 
+    						       driver.findElement(ObjectMap.getLocator("fileTaxReturnYes0")).click();
+    						       driver.findElement(ObjectMap.getLocator("jointtax")).click();
+    								 //driver.findElement(ObjectMap.getLocator("isMarriedNo0")).click();
+    								 driver.findElement(ObjectMap.getLocator("willclaimJointDependentNo0")).click();
+    								 //driver.findElement(ObjectMap.getLocator("willBeClaimedAsDependentNo0")).click();
+    								 		 
+    								 Thread.sleep(1000);
+    								 WebElement TaxStatusSave =	driver.findElement(ObjectMap.getLocator("fahtaxsave"));
+    								 JavascriptExecutor TaxStatusSaveExecutor = (JavascriptExecutor) driver;
+    								 TaxStatusSaveExecutor.executeScript ("arguments[0].click();" , TaxStatusSave); 
+    								 
+    								 Thread.sleep(5000);
+    					//FAH ParentCareTaker
+    								 driver.findElement(ObjectMap.getLocator("fahpcchild")).click();
+    								 
+    								 Thread.sleep(1000);
+    								 WebElement FAHCareTaker =	 driver.findElement(ObjectMap.getLocator("fahsaveandc"));
+    								 JavascriptExecutor FAHCareTakerExecutor = (JavascriptExecutor) driver;
+    								 FAHCareTakerExecutor.executeScript ("arguments[0].click();" , FAHCareTaker);
+    								
+    								 Thread.sleep(5000);
+    					//FAH Race Save and Continue
+    								 WebElement FAHRace =	 driver.findElement(ObjectMap.getLocator("fahracesandc"));
+    								 JavascriptExecutor FAHRaceExecutor = (JavascriptExecutor) driver;
+    								 FAHRaceExecutor.executeScript ("arguments[0].click();" ,FAHRace);
+    								 
+    								 Thread.sleep(4000);
+    								 
+    					//Spouse Family and Household
+    								 driver.findElement(ObjectMap.getLocator("fahSexFeMale1")).click(); 
+    								 Thread.sleep(2000); 
+    								 
+    								 WebElement FAHSpouse =	 driver.findElement(ObjectMap.getLocator("fahsandcspouse"));
+    								 JavascriptExecutor FAHSpouseExecutor = (JavascriptExecutor) driver;
+    								 FAHSpouseExecutor.executeScript ("arguments[0].click();" ,FAHSpouse);	 
+    								 driver.findElement(By.xpath("//button[@id='fahSexSave1']"));			 
+    					
+    					//SPouse social
+    								 WebElement FAHSs =	 driver.findElement(ObjectMap.getLocator("fahsssave1"));
+    								 JavascriptExecutor FAHSsExecutor = (JavascriptExecutor) driver;
+    								 FAHSsExecutor.executeScript ("arguments[0].click();" ,FAHSs);	 
+    								
+    								 WebElement FAHPopup =	 driver.findElement(ObjectMap.getLocator("nossn"));
+    								 JavascriptExecutor FAHPopUpExecutor = (JavascriptExecutor) driver;
+    								 FAHPopUpExecutor.executeScript ("arguments[0].click();" , FAHPopup); 
+    								 
+    								 Thread.sleep(5000);
+    								
+    					//SPouse US Citizen
+    								 
+    								 driver.findElement(ObjectMap.getLocator("spousecitizen")).click();
+    								 Thread.sleep(2000);
+    								 WebElement spousecit =	 driver.findElement(ObjectMap.getLocator("spousecitizensandc"));
+    								 JavascriptExecutor spousecitExecutor = (JavascriptExecutor) driver;
+    								 spousecitExecutor.executeScript ("arguments[0].click();" ,spousecit);	 
+    								 Thread.sleep(5000);	 
+    								 
+    								 driver.findElement(ObjectMap.getLocator("spouseadd")).click(); 
+    								 
+    								 Thread.sleep(2000);
+    								 
+    								 WebElement spouseadd =	 driver.findElement(ObjectMap.getLocator("spouseaddsandc"));
+    								 JavascriptExecutor spouseaddExecutor = (JavascriptExecutor) driver;
+    								 spouseaddExecutor.executeScript ("arguments[0].click();" ,spouseadd);	 
+    								 Thread.sleep(4000);
+    								 
+    								 try {
+										driver.findElement(By.xpath("//label[@for='fahParentCaretakerLiveWithChildrenRadioNo1']")).click();
+									} catch (Exception e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+    								 Thread.sleep(3000);
+    								 WebElement spouseaddsandc =	 driver.findElement(ObjectMap.getLocator("spousecaretakersandc"));
+    								 JavascriptExecutor spouseaddsandcExecutor = (JavascriptExecutor) driver;
+    								 spouseaddsandcExecutor.executeScript ("arguments[0].click();" ,spouseaddsandc);	 
+    								 Thread.sleep(4000);			 
+    								 
+    			//SPouse Race					 
+    								 WebElement spouserace =	 driver.findElement(ObjectMap.getLocator("sposueracesandc"));
+    								 JavascriptExecutor spouseraceExecutor = (JavascriptExecutor) driver;
+    								 spouseraceExecutor.executeScript ("arguments[0].click();" ,spouserace);	 
+    								 Thread.sleep(4000);			 
+    			//CHIP Question No
+    								 
+    								 
+    								 driver.findElement(ObjectMap.getLocator("chipq")).click();
+    								 
+    								 Thread.sleep(2000);
+    								 WebElement CHIP =	  driver.findElement(ObjectMap.getLocator("fahdisability"));
+    								 JavascriptExecutor CHIPExecutor = (JavascriptExecutor) driver;
+    								 CHIPExecutor.executeScript ("arguments[0].click();" ,CHIP);
+    								 Thread.sleep(5000);
+
+    				//AmericanIndian Yes or NO
+    								 driver.findElement(By.id("americanIndianAlaskanNativeNone")).click();
+    								 Thread.sleep(3000);
+    								 
+    								 WebElement AI =	  driver.findElement(ObjectMap.getLocator("AIsandc"));
+    								 JavascriptExecutor AIExecutor = (JavascriptExecutor) driver;
+    								 AIExecutor.executeScript ("arguments[0].click();" ,AI);
+    								 Thread.sleep(5000);
+    								 
+    								  
+    				//Preganant question		 	
+    								 
+    								 
+    								 
+    								 Thread.sleep(3000);
+    								 
+    								 WebElement Preg =	  driver.findElement(ObjectMap.getLocator("fahpregsandc"));
+    								 JavascriptExecutor PregExecutor = (JavascriptExecutor) driver;
+    								 PregExecutor.executeScript ("arguments[0].click();" ,Preg);
+    								 Thread.sleep(5000);
+    					//FAH Sumamry
+    								 
+    								 WebElement FAHSummary =	  driver.findElement(ObjectMap.getLocator("fahsummarysave"));
+    								 JavascriptExecutor FAHSummaryExecutor = (JavascriptExecutor) driver;
+    								 FAHSummaryExecutor.executeScript ("arguments[0].click();" ,FAHSummary);
+    								 Thread.sleep(5000);
+    								 
+    								 
+    						//Income Section 
+    								 
+    								 try {
+    									WebElement IncomeNextBtn = driver.findElement(ObjectMap.getLocator("incomewarning"));
+    									 JavascriptExecutor IncomeNextBtnExecutor = (JavascriptExecutor) driver;
+    									 IncomeNextBtnExecutor.executeScript ("arguments[0].click();" ,IncomeNextBtn);
+    									 Thread.sleep(5000);
+
+    									 //Source  - Job
+    									 driver.findElement(ObjectMap.getLocator("addincome")).click();
+    Thread.sleep(5000);
+
+    Select IncomeSource = new Select(driver.findElement(ObjectMap.getLocator("incomeTypeSelection")));
+    									   IncomeSource.selectByVisibleText("Job");
+    									   
+    									   driver.findElement(ObjectMap.getLocator("employername")).sendKeys("Employer");		
+
+    ///CSR 1A -  150% FPL
+    									   
+     
+    									   driver.findElement(ObjectMap.getLocator("jobincomeamt")).sendKeys(Income);
+    									   
+    										Select IncomeFreq = new Select(driver.findElement(ObjectMap.getLocator("jobfreq")));
+    										       IncomeFreq.selectByIndex(7);
+    										       Thread.sleep(5000);
+    										       
+    										       WebElement IncomeSaveBtn = driver.findElement(ObjectMap.getLocator("addincomemodal"));
+    												 JavascriptExecutor IncomeSaveBtnExecutor = (JavascriptExecutor) driver;
+    												 IncomeSaveBtnExecutor.executeScript ("arguments[0].click();" ,IncomeSaveBtn);
+    												 Thread.sleep(5000);
+    								} catch (Exception e2) {
+    									// TODO Auto-generated catch block
+    									e2.printStackTrace();
+    								}
+    						///This information is correct		
+    								 try {
+    									driver.findElement(ObjectMap.getLocator("Incomeprepop")).click();
+    								} catch (Exception e2) {
+    									// TODO Auto-generated catch block
+    									e2.printStackTrace();
+    								}
+    									Thread.sleep(5000);		 
+    											 WebElement IncomeSaveCntue = driver.findElement(ObjectMap.getLocator("saveaddprepopincome"));
+    											 JavascriptExecutor IncomeSaveCntueExecutor = (JavascriptExecutor) driver;
+    											 IncomeSaveCntueExecutor.executeScript ("arguments[0].click();" ,IncomeSaveCntue);
+    											 Thread.sleep(5000);	
+    							//prepop income				 
+    											 try {
+    												WebElement IncomeSaveCntuer = driver.findElement(ObjectMap.getLocator("saveadditionalincome"));
+    												 JavascriptExecutor IncomeSaveCntuerExecutor = (JavascriptExecutor) driver;
+    												 IncomeSaveCntuerExecutor.executeScript ("arguments[0].click();" ,IncomeSaveCntuer);
+    												 Thread.sleep(5000);
+    											} catch (Exception e2) {
+    												// TODO Auto-generated catch block
+    												e2.printStackTrace();
+    											}
+    											 
+    											 
+    											// No Deductions
+    												driver.findElement(ObjectMap.getLocator("addDeductionNo0")).click();
+    												
+    												
+    												WebElement Deductions = driver.findElement(ObjectMap.getLocator("savedeductions"));
+    												 JavascriptExecutor DeductionsExecutor = (JavascriptExecutor) driver;
+    												 DeductionsExecutor.executeScript ("arguments[0].click();" ,Deductions);
+    												 Thread.sleep(3000);
+    										 
+    												 driver.findElement(ObjectMap.getLocator("calculatedAnnualIncomeYes0")).click();
+    												 Thread.sleep(3000);
+    												 WebElement IncomeVErify = driver.findElement(ObjectMap.getLocator("saveannual"));
+    												 JavascriptExecutor IncomeVErifyExecutor = (JavascriptExecutor) driver;
+    												 IncomeVErifyExecutor.executeScript ("arguments[0].click();" ,IncomeVErify);
+    												 Thread.sleep(3000);
+    												 
+    								//Income Summary
+    												 				
+    												 WebElement IncomeSummry =  driver.findElement(ObjectMap.getLocator("savepersonal"));
+    												 JavascriptExecutor IncomeSummryExecutor = (JavascriptExecutor) driver;
+    												 IncomeSummryExecutor.executeScript ("arguments[0].click();" ,IncomeSummry);
+    												 Thread.sleep(5000);
+    					
+    						//Add Income for spouse
+    												 
+    												 driver.findElement(ObjectMap.getLocator("spouseincomeno")).click();
+    												 Thread.sleep(3000);
+    												 
+    												 WebElement IncomeSummry1 =  driver.findElement(ObjectMap.getLocator("spouseincomesandc"));
+    												 JavascriptExecutor IncomeSummry1Executor = (JavascriptExecutor) driver;
+    												 IncomeSummry1Executor.executeScript ("arguments[0].click();" ,IncomeSummry1);
+    												 Thread.sleep(3000);
+    											
+    												 driver.findElement(ObjectMap.getLocator("spousedeductions")).click();		 
+    												 Thread.sleep(3000);
+    												 WebElement IncomeSummry2 =  driver.findElement(ObjectMap.getLocator("spousedeductionssandc"));
+    												 JavascriptExecutor IncomeSummry2Executor = (JavascriptExecutor) driver;
+    												 IncomeSummry2Executor.executeScript ("arguments[0].click();" ,IncomeSummry2);
+    												 Thread.sleep(3000); 
+    												 
+    												
+    												 driver.findElement(ObjectMap.getLocator("spousecalcincome")).click();
+    												 Thread.sleep(3000); 
+    												 
+    												 WebElement PIncomeSummrySave =  driver.findElement(By.xpath("//button[@id='saveAnnualIncomeInformation1']"));
+    												 JavascriptExecutor PIncomeSummrySaveExecutor = (JavascriptExecutor) driver;
+    												 PIncomeSummrySaveExecutor.executeScript ("arguments[0].click();" ,PIncomeSummrySave);
+    												 Thread.sleep(5000);
+    												 
+    												 WebElement PMIncomeSummrySave =  driver.findElement(By.xpath("//button[@id='savePersonalIncomeSummary1']"));
+    												 JavascriptExecutor PMIncomeSummrySaveExecutor = (JavascriptExecutor) driver;
+    												 PMIncomeSummrySaveExecutor.executeScript ("arguments[0].click();" ,PMIncomeSummrySave);
+    												 Thread.sleep(5000);
+    												 
+    												 WebElement IncomeSummrySave =  driver.findElement(ObjectMap.getLocator("saveincomesummary"));
+    												 JavascriptExecutor IncomeSummrySaveExecutor = (JavascriptExecutor) driver;
+    												 IncomeSummrySaveExecutor.executeScript ("arguments[0].click();" ,IncomeSummrySave);
+    												 Thread.sleep(5000);			 
+    										 
+    										 
+    							//Additional Information SEP Questions
+    										 				 
+    												 WebElement SEPQuestionsNext =  driver.findElement(ObjectMap.getLocator("additionalinfo"));
+    												 JavascriptExecutor SEPQuestionsNextExecutor = (JavascriptExecutor) driver;
+    												 SEPQuestionsNextExecutor.executeScript ("arguments[0].click();" ,SEPQuestionsNext);
+    												 Thread.sleep(5000);
+    												 try {
+    	    											 driver.findElement(ObjectMap.getLocator("otherInsuranceNone0")).click();
+    	    												 
+    	    											//Health Coverage None
+    	    											 WebElement CoverageSaveCntnue =  driver.findElement(ObjectMap.getLocator("otherinsuranceenrolled"));
+    	    											 JavascriptExecutor CoverageSaveCntnueExecutor = (JavascriptExecutor) driver;
+    	    											 CoverageSaveCntnueExecutor.executeScript ("arguments[0].click();" ,CoverageSaveCntnue);
+    	    											 Thread.sleep(5000);						 
+    	    											
+    	    			//ESI details primary
+    	    											 driver.findElement(ObjectMap.getLocator("esiDetails0radio3b")).click();	 
+    	    											     	    											 
+    	    											 WebElement ESISaveCntnue =   driver.findElement(ObjectMap.getLocator("esisandc"));
+    	    											 JavascriptExecutor ESISaveCntnueExecutor = (JavascriptExecutor) driver;
+    	    											 ESISaveCntnueExecutor.executeScript ("arguments[0].click();" ,ESISaveCntnue);
+    	    											 Thread.sleep(5000);			 
+    					
+    	    											//future ESI
+    	    											 driver.findElement(ObjectMap.getLocator("futureESIDetails0question-no")).click();
+    	    											 
+    	    											 WebElement FutureESISaveCntnue =   driver.findElement(ObjectMap.getLocator("futureESIsandc"));
+    	    											 JavascriptExecutor FutureESISaveCntnueExecutor = (JavascriptExecutor) driver;
+    	    											 FutureESISaveCntnueExecutor.executeScript ("arguments[0].click();" ,FutureESISaveCntnue);
+    	    											 Thread.sleep(5000);
+    	    										 }
+    	    										 catch (Exception e) {
+    	    												// TODO Auto-generated catch block
+    	    												e.printStackTrace();
+    	    											}
+    	    	//EMployer contact information
+    												 
+    												 try {
+     													driver.findElement(ObjectMap.getLocator("employerContactInformationPhone1_0")).clear();
+     													 Thread.sleep(5000);
+     													  driver.findElement(ObjectMap.getLocator("employerContactInformationPhone1_0")).sendKeys("3322314323");
+     													  
+     													  Thread.sleep(5000);
+     													  WebElement EmployerContSaveCntnue =   driver.findElement(ObjectMap.getLocator("emplsandc"));
+     														 JavascriptExecutor EmployerContSaveCntnueExecutor = (JavascriptExecutor) driver;
+     														 EmployerContSaveCntnueExecutor.executeScript ("arguments[0].click();" ,EmployerContSaveCntnue);
+     														 Thread.sleep(5000);
+     														 
+     														 
+     												} catch (Exception e) {
+     													// TODO Auto-generated catch block
+     													e.printStackTrace();
+     												}
+     												 //driver.findElement(By.xpath("//button[@id='employerContactInformationSaveContinue2_0']"));					 
+     												//Enter phone no
+     												 try {
+     													driver.findElement(ObjectMap.getLocator("employerContactInformationPhone2_0")).clear();
+     													 Thread.sleep(5000);
+     													  driver.findElement(ObjectMap.getLocator("employerContactInformationPhone2_0")).sendKeys("3322314373");
+     													  
+     													  Thread.sleep(5000);
+     													  WebElement EmployerContSaveCntnue =   driver.findElement(ObjectMap.getLocator("emp2sandc"));
+     														 JavascriptExecutor EmployerContSaveCntnueExecutor = (JavascriptExecutor) driver;
+     														 EmployerContSaveCntnueExecutor.executeScript ("arguments[0].click();" ,EmployerContSaveCntnue);
+     														 Thread.sleep(5000);
+     												} catch (Exception e) {
+     													// TODO Auto-generated catch block
+     													e.printStackTrace();
+     												}
+    		//Spouse coverage information
+     												 
+     												 try {
+    	    											 driver.findElement(ObjectMap.getLocator("otherInsuranceNone1")).click();
+    	    												 
+    	    											//Health Coverage None
+    	    											 WebElement CoverageSaveCntnue =  driver.findElement(ObjectMap.getLocator("otherinsuranceenrolled1"));
+    	    											 JavascriptExecutor CoverageSaveCntnueExecutor = (JavascriptExecutor) driver;
+    	    											 CoverageSaveCntnueExecutor.executeScript ("arguments[0].click();" ,CoverageSaveCntnue);
+    	    											 Thread.sleep(5000);						 
+    	    											
+    	    			//ESI details spouse
+    	    											 driver.findElement(ObjectMap.getLocator("esiDetails1radio3b")).click();	 
+    	    											  Thread.sleep(3000);   	    											 
+    	    											 WebElement ESISaveCntnue =   driver.findElement(ObjectMap.getLocator("esi1sandc"));
+    	    											 JavascriptExecutor ESISaveCntnueExecutor = (JavascriptExecutor) driver;
+    	    											 ESISaveCntnueExecutor.executeScript ("arguments[0].click();" ,ESISaveCntnue);
+    	    											 Thread.sleep(5000);			 
+    					
+    	    											//future ESI
+    	    											 driver.findElement(ObjectMap.getLocator("futureESIDetails1question-no")).click();
+    	    											 
+    	    											 WebElement FutureESISaveCntnue =   driver.findElement(ObjectMap.getLocator("futureESI1sandc"));
+    	    											 JavascriptExecutor FutureESISaveCntnueExecutor = (JavascriptExecutor) driver;
+    	    											 FutureESISaveCntnueExecutor.executeScript ("arguments[0].click();" ,FutureESISaveCntnue);
+    	    											 Thread.sleep(5000);
+    	    										 }
+    	    										 catch (Exception e) {
+    	    												// TODO Auto-generated catch block
+    	    												e.printStackTrace();
+    	    											}
+    	    	//EMployer contact information
+    												 
+    												 try {
+     													driver.findElement(ObjectMap.getLocator("employerContactInformationPhone1_0")).clear();
+     													 Thread.sleep(5000);
+     													  driver.findElement(ObjectMap.getLocator("employerContactInformationPhone1_0")).sendKeys("3322314323");
+     													  
+     													  Thread.sleep(5000);
+     													  WebElement EmployerContSaveCntnue =   driver.findElement(ObjectMap.getLocator("emplsandc"));
+     														 JavascriptExecutor EmployerContSaveCntnueExecutor = (JavascriptExecutor) driver;
+     														 EmployerContSaveCntnueExecutor.executeScript ("arguments[0].click();" ,EmployerContSaveCntnue);
+     														 Thread.sleep(5000);
+     														 
+     														 
+     												} catch (Exception e) {
+     													// TODO Auto-generated catch block
+     													e.printStackTrace();
+     												}
+     												 //driver.findElement(By.xpath("//button[@id='employerContactInformationSaveContinue2_0']"));					 
+     												//Enter phone no
+     												 try {
+     													driver.findElement(ObjectMap.getLocator("employerContactInformationPhone2_0")).clear();
+     													 Thread.sleep(5000);
+     													  driver.findElement(ObjectMap.getLocator("employerContactInformationPhone2_0")).sendKeys("3322314373");
+     													  
+     													  Thread.sleep(5000);
+     													  WebElement EmployerContSaveCntnue =   driver.findElement(ObjectMap.getLocator("emp2sandc"));
+     														 JavascriptExecutor EmployerContSaveCntnueExecutor = (JavascriptExecutor) driver;
+     														 EmployerContSaveCntnueExecutor.executeScript ("arguments[0].click();" ,EmployerContSaveCntnue);
+     														 Thread.sleep(5000);
+     												} catch (Exception e) {
+     													// TODO Auto-generated catch block
+     													e.printStackTrace();
+     												}												 
+    										
+     												 
+     		//SEP										 
+     												if(sep_type.startsWith("LMEC"))	{				 
+														//LMEC
+															 driver.findElement(ObjectMap.getLocator("sepLostInsurancePerson0")).click();
+															 Thread.sleep(5000);
+														//System.out.println(AdotionSEPEventDate);
+																driver.findElement(ObjectMap.getLocator("sepLostInsurancePerson0Date")).sendKeys(sep);
+																Thread.sleep(5000);
+												 }		
+																Thread.sleep(5000);
+																WebElement SEPLostInsurancee =   driver.findElement(ObjectMap.getLocator("SEP_Lost"));
+																 JavascriptExecutor SEPLostInsuranceeExecutor = (JavascriptExecutor) driver;
+																 SEPLostInsuranceeExecutor.executeScript ("arguments[0].click();" ,SEPLostInsurancee);
+																 Thread.sleep(5000);
+						
+												 
+																		
+														 
+//MECFSEP 
+if(sep_type.startsWith("MECF"))	{
+									 driver.findElement(ObjectMap.getLocator("sepProspectiveLostInsurancePerson0")).click();
+									 Thread.sleep(5000);
+										//System.out.println(AdotionSEPEventDate);
+										driver.findElement(ObjectMap.getLocator("sepProspectiveLostInsurancePerson0Date")).sendKeys(sep);
+										Thread.sleep(5000);
+									 
+}	 
+								 WebElement MECFutureBtn =   driver.findElement(ObjectMap.getLocator("SEP_Future"));
+								 JavascriptExecutor MECFutureBtnExecutor = (JavascriptExecutor) driver;
+								 MECFutureBtnExecutor.executeScript ("arguments[0].click();" ,MECFutureBtn);
+								 Thread.sleep(5000);										 
+									 
+							 
+										
+//Marriage SEP		 
+
+if(sep_type.startsWith("MARR"))	{
+
+driver.findElement(ObjectMap.getLocator("sepMarriedPerson0")).click();
+Thread.sleep(5000);
+//System.out.println(AdotionSEPEventDate);
+driver.findElement(ObjectMap.getLocator("sepMarriedPerson0Date")).sendKeys(sep);
+Thread.sleep(5000);
+driver.findElement(ObjectMap.getLocator("MarrSEPAttest")).click();
+Thread.sleep(5000);
+}
+		WebElement MarriageSEPBtn =   driver.findElement(ObjectMap.getLocator("SEP_Marr"));
+		JavascriptExecutor MarriageSEPBtnExecutor = (JavascriptExecutor) driver;
+		MarriageSEPBtnExecutor.executeScript ("arguments[0].click();" ,MarriageSEPBtn);
+		Thread.sleep(5000);
+
+
+//Adoption SEP													 
+			
+if(sep_type.startsWith("ADOP"))	{	
+driver.findElement(ObjectMap.getLocator("sepAdoptedPerson0")).click();
+Thread.sleep(5000);
+//String AdotionSEPEventDate = new String(excelfile.getData(0, 1, 7));
+//System.out.println(AdotionSEPEventDate);
+driver.findElement(By.id("sepAdoptedPerson0Date")).sendKeys(sep);
+ 
+Thread.sleep(5000);
+
+	
+		
+        
+}	
+        WebElement AdotionSEPBtn =   driver.findElement(ObjectMap.getLocator("SEP_Adop"));
+		JavascriptExecutor AdotionSEPBtnExecutor = (JavascriptExecutor) driver;
+		AdotionSEPBtnExecutor.executeScript ("arguments[0].click();" ,AdotionSEPBtn);
+		Thread.sleep(5000);
+		
+
+//Immigration SEP	 
+		if(sep_type.startsWith("IMMI"))	{
+			driver.findElement(ObjectMap.getLocator("sepImmigrationPerson0")).click();
+			Thread.sleep(5000);
+			//System.out.println(AdotionSEPEventDate);
+			driver.findElement(ObjectMap.getLocator("sepImmigrationPerson0Date")).sendKeys(sep);
+			Thread.sleep(5000);
+		
+			
+		}
+
+
+WebElement ImmiSEPBtn =   driver.findElement(ObjectMap.getLocator("SEP_Immi"));
+JavascriptExecutor ImmiSEPBtnExecutor = (JavascriptExecutor) driver;
+ImmiSEPBtnExecutor.executeScript ("arguments[0].click();" ,ImmiSEPBtn);
+Thread.sleep(5000);
+
+//Move SEP
+
+if(sep_type.startsWith("MOVE"))	{
+driver.findElement(ObjectMap.getLocator("sepMovedPerson0")).click();
+Thread.sleep(5000);
+ driver.findElement(ObjectMap.getLocator("sepMovedForeignAddr0_ChkBxListEntry")).click();	
+ Thread.sleep(5000);
+	//System.out.println(AdotionSEPEventDate);
+ //driver.findElement(By.xpath("//input[@id='sepMovedPerson0Zipcode']"));
+ driver.findElement(ObjectMap.getLocator("sepMovedPerson0Date")).sendKeys(sep);
+ 
+ Thread.sleep(5000);
+ 
+// driver.findElement(By.xpath("//label[@for='sepMovedMecDiv0Question_YNQuestion_No']")).click();
+ 
+ 
+
+}
+WebElement MoveSEPBtn =   driver.findElement(ObjectMap.getLocator("SEP_Move"));
+JavascriptExecutor MoveSEPBtnExecutor = (JavascriptExecutor) driver;
+MoveSEPBtnExecutor.executeScript ("arguments[0].click();" ,MoveSEPBtn);
+Thread.sleep(5000);
+
+//Incar SEP
+if(sep_type.startsWith("INCAR"))	{
+
+driver.findElement(ObjectMap.getLocator("sepIncarceratedPerson0")).click();
+Thread.sleep(5000);
+//System.out.println(AdotionSEPEventDate);
+driver.findElement(ObjectMap.getLocator("sepIncarceratedPerson0Date")).sendKeys(sep);
+Thread.sleep(5000);
+
+
+
+}
+WebElement IncarSEPBtn =    driver.findElement(ObjectMap.getLocator("SEP_Incar"));
+JavascriptExecutor IncarSEPBtnExecutor = (JavascriptExecutor) driver;
+IncarSEPBtnExecutor.executeScript ("arguments[0].click();" ,IncarSEPBtn);
+Thread.sleep(10000);
+
+//IRS Tax Credits Reconcile
+
+try {
+driver.findElement(ObjectMap.getLocator("TaxQchk")).click();
+} catch (Exception e1) {
+// TODO Auto-generated catch block
+e1.printStackTrace();
+}
+Thread.sleep(5000);
+try {
+ 
+WebElement TaxCreditBtn =   driver.findElement(ObjectMap.getLocator("TaxQ"));
+ JavascriptExecutor TaxCreditExecutor = (JavascriptExecutor) driver;
+ TaxCreditExecutor.executeScript ("arguments[0].click();" ,TaxCreditBtn);
+ Thread.sleep(15000);
+ 
+ WebElement ReviewSignNextBtn =    driver.findElement(ObjectMap.getLocator("Review_chapterpagenext"));
+ JavascriptExecutor ReviewSignNextExecutor = (JavascriptExecutor) driver;
+ ReviewSignNextExecutor.executeScript ("arguments[0].click();" ,ReviewSignNextBtn);
+ Thread.sleep(15000);
+ 
+//Review and Sign NExt btn					 
+} catch (Exception e) {
+// TODO Auto-generated catch block
+WebElement ReviewSignNextBtn =     driver.findElement(ObjectMap.getLocator("Review_chapterpagenext"));
+ JavascriptExecutor ReviewSignNextExecutor = (JavascriptExecutor) driver;
+ ReviewSignNextExecutor.executeScript ("arguments[0].click();" ,ReviewSignNextBtn);
+ Thread.sleep(15000);
+}
+
+
+//Review APP Save and Continue
+
+
+WebElement ReviewAppBtn =    driver.findElement(ObjectMap.getLocator("ReviewAppsandc"));
+JavascriptExecutor ReviewAppExecutor = (JavascriptExecutor) driver;
+ReviewAppExecutor.executeScript ("arguments[0].click();" ,ReviewAppBtn);
+Thread.sleep(15000);
+
+//Attestation
+
+if(source.startsWith("ESD"))	 {
+	
+  driver.findElement(By.id("reviewAttestationsRadioIncarcerationYes")).click();
+  driver.findElement(By.id("reviewAttestationsRadioTaxInfoUseYes")).click();	
+ Thread.sleep(5000);
+  WebElement AttestationSaveBtn =    driver.findElement(By.xpath("//button[@id='attestationSaveContinue']"));
+	 JavascriptExecutor AttestationSaveBtnExecutor = (JavascriptExecutor) driver;
+	 AttestationSaveBtnExecutor.executeScript ("arguments[0].click();" ,AttestationSaveBtn);
+	 Thread.sleep(5000);
+	 		 
+	 WebElement AppSubmit =     driver.findElement(By.xpath("//button[@id='reviewSignAndSubmitSaveContinue']"));
+	 JavascriptExecutor AppSubmitExecutor = (JavascriptExecutor) driver;
+	 AppSubmitExecutor.executeScript ("arguments[0].click();" ,AppSubmit);
+	 Thread.sleep(50000);
+	 driver.findElement(By.xpath("//button[@id='viewEligibility']")).click();
+		
+		Thread.sleep(25000);
+		driver.findElement(By.id("proceedToEnrollBtn")).click();
+		
+		Thread.sleep(6000);
+		
+			Thread.sleep(5000);
+		
+}
+ 
+if(source.startsWith("CCR"))	{							 
+  driver.findElement(By.id("reviewAttestationsRadioIncarcerationYes")).click();
+  driver.findElement(By.id("reviewAttestationsRadioTaxInfoUseYes")).click();
+  driver.findElement(By.id("reviewAttestationsRadioTellChangesYes")).click();
+
+//Attestation Save and Continue
+  
+  
+  WebElement AttestationSaveBtn =    driver.findElement(By.xpath("//button[@id='attestationSaveContinue']"));
+	 JavascriptExecutor AttestationSaveBtnExecutor = (JavascriptExecutor) driver;
+	 AttestationSaveBtnExecutor.executeScript ("arguments[0].click();" ,AttestationSaveBtn);
+	 Thread.sleep(5000);
+	 
+//Review and Submit Radio Button
+	 
+	 driver.findElement(By.id("reviewSignAndSubmitRadioYes")).click();
+	 driver.findElement(By.id("reviewSignAndSubmitTextSignature")).sendKeys(Fname);
+
+			 
+//Submit App
+	
+	 WebElement AppSubmit =     driver.findElement(By.xpath("//button[@id='reviewSignAndSubmitSaveContinue']"));
+	 JavascriptExecutor AppSubmitExecutor = (JavascriptExecutor) driver;
+	 AppSubmitExecutor.executeScript ("arguments[0].click();" ,AppSubmit);
+	 Thread.sleep(5000);
+
+
+
+driver.findElement(By.xpath("//button[@id='viewEligibility']")).click();
+
+Thread.sleep(5000);
+driver.findElement(By.xpath("//button[@id='proceedToEnrollBtn']")).click();
+
+Thread.sleep(5000);
+
+
+		
+		
+		System.out.println("NULL"+"   "+state_code+"   "+ApplicationID+"    "+source);	
+		
+  
+Thread.sleep(5000);
+
+
+}									
+
+
+
+
+if(source.startsWith("FFM"))	{							 
+driver.findElement(ObjectMap.getLocator("reviewAttestationsRadioIncarcerationYes")).click();
+driver.findElement(ObjectMap.getLocator("reviewAttestationsRadioTaxInfoUseYes")).click();
+driver.findElement(ObjectMap.getLocator("reviewAttestationsRadioTellChangesYes")).click();
+
+//Attestation Save and Continue
+
+
+WebElement AttestationSaveBtn =    driver.findElement(ObjectMap.getLocator("Attestsandc"));
+JavascriptExecutor AttestationSaveBtnExecutor = (JavascriptExecutor) driver;
+AttestationSaveBtnExecutor.executeScript ("arguments[0].click();" ,AttestationSaveBtn);
+Thread.sleep(5000);
+
+//Review and Submit Radio Button
+
+driver.findElement(ObjectMap.getLocator("reviewSignAndSubmitRadioYes")).click();
+driver.findElement(ObjectMap.getLocator("reviewSignAndSubmitTextSignature")).sendKeys(Fname);
+
+//Submit App
+
+WebElement AppSubmit =     driver.findElement(ObjectMap.getLocator("reviewsandc"));
+JavascriptExecutor AppSubmitExecutor = (JavascriptExecutor) driver;
+AppSubmitExecutor.executeScript ("arguments[0].click();" ,AppSubmit);
+Thread.sleep(30000);
+
+System.out.println(useraccount+"   "+state_code+"   "+ApplicationID+"    "+source+"    "+tcID);	
+
+driver.findElement(ObjectMap.getLocator("ViewEligiblity")).click();
+
+Thread.sleep(15000);
+driver.findElement(ObjectMap.getLocator("Enrollbtn")).click();
+
+//Thread.sleep(25000);
+
+
+
+
+
+
+
+Thread.sleep(5000);
+
+
+  
+
+}
+if(source.startsWith("DE")) {
+
+driver.findElement(By.id("reviewAttestationsRadioIncarcerationYes")).click();
+driver.findElement(By.id("reviewAttestationsRadioTaxInfoUseYes")).click();
+driver.findElement(By.id("reviewAttestationsRadioTellChangesYes")).click();
+
+//Attestation Save and Continue
+
+
+WebElement AttestationSaveBtn =    driver.findElement(By.xpath("//button[@id='attestationSaveContinue']"));
+JavascriptExecutor AttestationSaveBtnExecutor = (JavascriptExecutor) driver;
+AttestationSaveBtnExecutor.executeScript ("arguments[0].click();" ,AttestationSaveBtn);
+Thread.sleep(5000);
+
+//Review and Submit Radio Button
+
+driver.findElement(By.id("reviewSignAndSubmitRadioYes")).click();
+driver.findElement(By.id("reviewSignAndSubmitTextSignature")).sendKeys(Fname);
+
+//Submit App
+
+WebElement AppSubmit =     driver.findElement(By.xpath("//button[@id='reviewSignAndSubmitSaveContinue']"));
+JavascriptExecutor AppSubmitExecutor = (JavascriptExecutor) driver;
+AppSubmitExecutor.executeScript ("arguments[0].click();" ,AppSubmit);
+Thread.sleep(15000);
+
+if(tcID.startsWith("MDCD")) {
+
+driver.findElement(ObjectMap.getLocator("sendtomedicaidchk")).click();
+Thread.sleep(3000);
+driver.findElement(ObjectMap.getLocator("sendtomedicaid")).click();
+Thread.sleep(5000);
+}
+
+driver.findElement(By.xpath("//button[@id='viewEligibility']")).click();
+
+Thread.sleep(15000);
+
+
+
+driver.findElement(By.id("proceedToEnrollBtn")).click();
+
+
+
+Thread.sleep(10000);		
+//String title = driver.getCurrentUrl();			
+if(driver.getPageSource().contains("Signature Validation Success")) {
+	  
+	
+	System.out.println(useraccount+"   "+state_code+"   "+ApplicationID+"    "+source);	
+}
+
+}
+							 
+    												 Thread.sleep(2000);
+    												 if(Enroll.startsWith("Y")) {
+    												    	
+    												    	Thread.sleep(10000);
+    												    	try {
+    															try {
+    																	//driver.navigate().to("https://imp1a.healthcare.gov/marketplace/auth/enroll/ccrs/?a=139951968&cache=true&t=AL#/aptc");
+    																	
+    																	
+    																	
+    																	driver.findElement(ObjectMap.getLocator("TobaccoQ")).click();
+    																	
+    																	Thread.sleep(5000);
+    																	
+    																	List<WebElement> liT = driver.findElements(ObjectMap.getLocator("Tobacco_No"));
+    																	  liT.get(0).click();	
+    																	  Thread.sleep(2000);
+    																	  liT.get(1).click();
+
+    																	
+    																			
+    																	Thread.sleep(5000);
+    																	 
+    																	WebElement TobaccoContinue =  driver.findElement(ObjectMap.getLocator("Tobacco_Continue"));
+    																	 JavascriptExecutor TobaccoContinueExecutor = (JavascriptExecutor) driver;
+    																	 TobaccoContinueExecutor.executeScript ("arguments[0].click();" ,TobaccoContinue);
+    																	 Thread.sleep(5000);
+    																	 
+    																} catch (Exception e1) {
+    																	// TODO Auto-generated catch block
+    																	
+    																	Thread.sleep(5000);
+    																	driver.findElement(ObjectMap.getLocator("Aptc")).click();
+    																	Thread.sleep(5000);
+    																	
+    																	WebElement APTCSelect =     driver.findElement(ObjectMap.getLocator("Aptc_all"));
+    																	JavascriptExecutor APTCSelectExecutor = (JavascriptExecutor) driver;
+    																	APTCSelectExecutor.executeScript ("arguments[0].click();" ,APTCSelect);
+    																	Thread.sleep(5000);
+    																	
+    																	Thread.sleep(5000);
+    																	
+    																	WebElement APTCContinue =    driver.findElement(ObjectMap.getLocator("Aptc_continue"));
+    																	 JavascriptExecutor APTCContinueExecutor = (JavascriptExecutor) driver;
+    																	 APTCContinueExecutor.executeScript ("arguments[0].click();" ,APTCContinue);
+    																	 Thread.sleep(5000);
+    																	 
+    																	 List<WebElement> liT1 = driver.findElements(ObjectMap.getLocator("Tobacco_No"));
+   																	  liT1.get(0).click();	
+   																	  Thread.sleep(2000);
+   																	driver.findElement(ObjectMap.getLocator("Tobacco_No")).click();
+    																		Thread.sleep(5000);
+    																		//driver.findElement(By.xpath("//button[@class='btn btn-hcapp-sm qa-tobacco-btn-no active']")).click();
+    																		
+    																		Thread.sleep(5000);
+    																		
+    																		WebElement TobaccoContinue =  driver.findElement(ObjectMap.getLocator("Tobacco_Continue"));
+    																		 JavascriptExecutor TobaccoContinueExecutor = (JavascriptExecutor) driver;
+    																		 TobaccoContinueExecutor.executeScript ("arguments[0].click();" ,TobaccoContinue);
+    																		 Thread.sleep(5000);
+    																}  			
+    															
+    															
+    															//Provoider search						 
+    															 
+    															 
+    															 WebElement ProvSearch =  driver.findElement(ObjectMap.getLocator("Provskip"));
+    															 JavascriptExecutor ProvSearchExecutor = (JavascriptExecutor) driver;
+    															 ProvSearchExecutor.executeScript ("arguments[0].click();" ,ProvSearch);
+    															 Thread.sleep(5000);
+    															
+    															 
+    															 //medium usage
+    															 //driver.findElement(ObjectMap.getLocator("oopc")).click();
+    															 
+    															 Thread.sleep(2000);
+    															 driver.findElement(ObjectMap.getLocator("oopcskip")).click();
+    															 Thread.sleep(3000);
+    														//continue
+    																							
+    														//usage Continue
+    																
+    																 
+    																 driver.findElement(ObjectMap.getLocator("group_healthplans")).click();
+    																 
+    																 Thread.sleep(5000);
+    																	driver.findElement(ObjectMap.getLocator("next")).click();
+    																	Thread.sleep(5000);
+
+    																	try {
+    																		driver.findElement(ObjectMap.getLocator("qanext")).click();
+    																		Thread.sleep(3000);
+    																		driver.findElement(ObjectMap.getLocator("close")).click();
+    																	} catch (Exception e1) {
+    																		// TODO Auto-generated catch block
+    																		driver.findElement(ObjectMap.getLocator("close")).click();
+    																	}
+    																	
+    																	driver.findElement(ObjectMap.getLocator("enrollplan")).click();
+
+    																	Thread.sleep(5000);
+    															//String H_PlanID=	driver.findElement(ObjectMap.getLocator("get_planid")).getText();
+
+    																	driver.findElement(ObjectMap.getLocator("enrollmodal")).click();
+
+    																	Thread.sleep(5000);
+
+
+    																	WebElement EnrollContinue =  driver.findElement(ObjectMap.getLocator("enroll_continue"));
+    																	JavascriptExecutor EnrollContinueExecutor = (JavascriptExecutor) driver;
+    																	EnrollContinueExecutor.executeScript ("arguments[0].click();" ,EnrollContinue);
+
+    																	Thread.sleep(5000);
+    																	try {
+    																		WebElement EnrollReview =  driver.findElement(ObjectMap.getLocator("enroll_continue"));
+    																		JavascriptExecutor EnrollReviewExecutor = (JavascriptExecutor) driver;
+    																		EnrollReviewExecutor.executeScript ("arguments[0].click();" ,EnrollReview);
+    																	} catch (Exception e) {
+    																		// TODO Auto-generated catch block
+    																		e.printStackTrace();
+    																	}
+    																	
+    																	
+    																	driver.findElement(ObjectMap.getLocator("dentalno")).click();
+     																	
+     																	  Thread.sleep(2000);
+     																	  
+     																	  
+     				     																	     																	//String D_PlanID=	driver.findElement(ObjectMap.getLocator("get_planid")).getText();
+     																	
+     																	
+     																	
+     																	
+     																	try {
+     																		WebElement DentalEnrollReview =  driver.findElement(ObjectMap.getLocator("enroll_continue"));
+     																		JavascriptExecutor DentalEnrollReviewExecutor = (JavascriptExecutor) driver;
+     																		DentalEnrollReviewExecutor.executeScript ("arguments[0].click();" ,DentalEnrollReview);
+     																	} catch (Exception e) {
+     																		// TODO Auto-generated catch block
+     																		e.printStackTrace();
+     																	}
+     																	
+     																	
+     																	try {
+     																		driver.findElement(ObjectMap.getLocator("attest")).click();
+     																		
+     																		Thread.sleep(5000);
+     																		
+     																		WebElement DentalPlanSaveContinue =  driver.findElement(ObjectMap.getLocator("attest_continue"));
+     																		JavascriptExecutor DentalPlanSaveContinueExecutor = (JavascriptExecutor) driver;
+     																		DentalPlanSaveContinueExecutor.executeScript ("arguments[0].click();" ,DentalPlanSaveContinue);
+     																		
+     																		Thread.sleep(5000);
+     																		
+     																		driver.findElement(ObjectMap.getLocator("agree")).click();
+     																		Thread.sleep(5000);
+     																		
+     																		driver.findElement(ObjectMap.getLocator("sign")).sendKeys("FNAME_LNAME");
+     																		Thread.sleep(5000);
+     																		
+     																		WebElement Finish =   driver.findElement(ObjectMap.getLocator("finish"));
+     																		JavascriptExecutor FinishExecutor = (JavascriptExecutor) driver;
+     																		FinishExecutor.executeScript ("arguments[0].click();" ,Finish);
+     																		Thread.sleep(15000);
+     																		
+     																		//Upload documents page
+     																		
+     																		
+     																		
+     																	} catch (Exception e1) {
+     																		// TODO Auto-generated catch block
+     																		WebElement Finish =   driver.findElement(ObjectMap.getLocator("finish"));
+     																		JavascriptExecutor FinishExecutor = (JavascriptExecutor) driver;
+     																		FinishExecutor.executeScript ("arguments[0].click();" ,Finish);
+     																		Thread.sleep(15000);
+     																	}
+
+//     																														
+ 
+
+     																	
+     																			
+     																	  } 
+     																	  catch (IOException e1) {
+     																			// TODO Auto-generated catch block
+     																			e1.printStackTrace();
+     																	  
+     																	  }
+     																			
+     																			//driver.navigate().to(constant.IndAppURL1+StateCode+constant.MyAccountURL+AppID+constant.MyPlanProfile);
+
+
+     
+
+     															    			
+     															    
+     															 
+     															 //SEPV upload documents   button
+     															    
+     															    if(sep_type.startsWith("ADOP")){
+     															    	driver.findElement(ObjectMap.getLocator("sepvsubmitdocs")).click();
+     															    	
+     															    	Thread.sleep(5000);
+     															   	    	
+     															    }
+     															    
+     															    if(sep_type.startsWith("MARR")){
+     															driver.findElement(ObjectMap.getLocator("sepvsubmitdocs")).click();
+     															    	
+     															    	Thread.sleep(5000);
+     																    	
+     															    }
+     															    
+     															    if(sep_type.startsWith("LMEC")){
+     															    	
+     															driver.findElement(ObjectMap.getLocator("sepvsubmitdocs")).click();
+     															    	
+     															    	Thread.sleep(5000);	
+     															    }
+     															    
+     															if(sep_type.startsWith("MECF")){
+     															    	
+     																driver.findElement(ObjectMap.getLocator("sepvsubmitdocs")).click();
+     																
+     																Thread.sleep(5000);	
+     															    }
+
+     															if(sep_type.startsWith("MOVE")){
+     																
+     																driver.findElement(ObjectMap.getLocator("sepvsubmitdocs")).click();
+     																
+     																Thread.sleep(5000);
+     															}
+
+     															if(sep_type.startsWith("MDNL")){
+     																
+     																driver.findElement(ObjectMap.getLocator("sepvsubmitdocs")).click();
+     																
+     																Thread.sleep(5000);	
+     															}
+
+     															    }
+     																	String Pass = "Passed";
+     																	
+     																	DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+     																	Date date = new Date(); 
+     																	//System.out.println(useraccount+"   "+state_code+"   "+ApplicationID+"    "+source+"    "+tcID+"   "+Pass+"    "+dateFormat.format(date));	
+     																		String [] valuetowrite = {useraccount,ApplicationID,state_code,Income,zip,sep_type,sep,Pass,dateFormat.format(date),Enroll,"VLP Initial Apps",tcID,Sauce_SessionID};
+     																		 writeexcelfile objExcelFile = new writeexcelfile();
+     																		 //
+
+     																		 //V6,ApplicationID,V5,V12,V4,V9,V8,Fail,dateFormat.format(date),V14,V20,V21,V15,V16,V17,V18,"VLP Initial Apps",V19,V22,V23,V24,V27,V25,V26
+     																	     //Write the file using file name, sheet name and the data to be filled
+
+     																	     objExcelFile.writeExcel(System.getProperty("user.dir"),"VLP.xls","Initial_Apps",valuetowrite);
+     																		
+     																	     }
+    												 }
+        									//coverage for spouse		 
+        											// 
+    										 
+        											
+        											 
+
+    	 
+
+    	 
+    //Review and Sign NExt btn					 
+    
+
+
+    
+	
+	
+	
+	
+	@AfterMethod
+	public void writeResult(ITestResult result)
+	{
+	    try
+	    {
+	        if(result.getStatus() == ITestResult.FAILURE)
+	        {
+	        	//driver.findElement(ObjectMap.getLocator("logout")).click();
+	            //System.out.println("Log Message:: @AfterMethod: Method-"+methodName+"- has Failed");
+	            //Do your excel writing stuff here
+	        	String Fail = "Failed";
+	        	DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	        	Date date = new Date(); 
+
+	        		String [] valuetowrite = {useraccount,ApplicationID,state_code,Income,zip,sep_type,sep,Fail,dateFormat.format(date),Enroll,"VLP Initial Apps", tcID,Sauce_SessionID};
+	        		 writeexcelfile objExcelFile = new writeexcelfile();
+
+	        	     //Write the file using file name, sheet name and the data to be filled
+
+	        		 objExcelFile.writeExcel(System.getProperty("user.dir"),"VLP.xls","Initial_Apps",valuetowrite);
+	        	
+	        		 
+	        		 
+	        		 
+	        		 my_sqlladdrecords_results add = new my_sqlladdrecords_results();
+	        		 add.Add_Records(resultsID,useraccount, ApplicationID,state_code, Income, zip, sep_type, sep, "Failed", Enroll, "2hhApps", tcID, Sauce_SessionID); 
+	        		 
+	        	     driver.close();
+	        	     driver.quit();
+}
+	        else if(result.getStatus() == ITestResult.SKIP)
+	        {
+	            //System.out.println(" This testcase is skipped. Please update the flag to run");
+	        	
+	        }
+	        else if(result.getStatus() == ITestResult.SUCCESS)
+	        {
+	            //System.out.println("This test case is skipped");
+	        	my_sqlladdrecords_results addr = new my_sqlladdrecords_results(); 
+	        	addr.Add_Records(resultsID,useraccount, ApplicationID,state_code, Income, zip, sep_type, sep, "Passed", Enroll, "2hhApps", tcID, Sauce_SessionID);
+	        	
+	        	driver.close();
+	        	driver.quit();
+	        	
+	        }
+else {
+	        	
+	        	driver.close();
+	        	driver.quit();
+	        }
+	    }
+	    catch(Exception e)
+	    {
+	        //System.out.println("\nLog Message::@AfterMethod: Exception caught");
+	        e.printStackTrace();
+	    }
+
+	}
+}
