@@ -154,3 +154,13 @@ public class DataBaseConnector {
         return resultValue;
     }
 }
+
+@Test(priority = 1)
+    public void testVerifySpecificRecord() {
+        String sqlQuery = "select EmpName from employee WHERE EmpId="1"";
+        String expectedEmpName = "Jack";
+        //Getting employee name by Id
+        String actualEmpNameById = DataBaseConnector.executeSQLQuery("QA", sqlQuery);
+        System.out.println("Employee name retrieved from database :" + actualEmpNameById);
+        Assert.assertEquals(expectedEmpName, actualEmpNameById);
+    }
