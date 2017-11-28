@@ -1,0 +1,1313 @@
+package TestCases;
+
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.ui.Select;
+import org.testng.ITestResult;
+import org.testng.SkipException;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import TestEnvironment.Regions.constant;
+import jxl.Cell;
+import jxl.Sheet;
+import jxl.Workbook;
+import jxl.read.biff.BiffException;
+import lib.Exceldataconfig;
+import lib.RandomStringGen;
+import lib.writeexcelfile;
+
+public class Dataprovider_test {
+	ITestResult result;
+	public static WebDriver driver ;
+	ObjectMap objmap;
+	String fname;
+	String lname;
+	String USERNAME = constant.SAUCEUSERNAME;
+	String ACCESS_KEY = constant.SAUCE_ACCESS_KEY;
+	static String SURL = constant.SAUCE_URL;
+
+	@BeforeClass
+	public void T1_OpenBrowser() throws Exception {
+		
+		FirefoxProfile firefoxProfile = new FirefoxProfile();
+	    firefoxProfile.setPreference("browser.download.folderList", 2);
+	    firefoxProfile.setPreference("browser.download.manager.showWhenStarting", false);
+	    firefoxProfile.setPreference("browser.download.dir", "C:\\Users\\T-PSadagopan\\Downloads\\");
+	    firefoxProfile.setPreference("browser.helperApps.neverAsk.saveToDisk", "application/pdf");
+	    firefoxProfile.setPreference("pdfjs.disabled", true);
+	    firefoxProfile.setPreference("plugin.scan.Acrobat", "99.0");
+	    firefoxProfile.setPreference("plugin.scan.plid.all", false);
+	    		 
+	    DesiredCapabilities desiredCapabilities = DesiredCapabilities.firefox();
+	    	desiredCapabilities.setCapability(FirefoxDriver.PROFILE, firefoxProfile);
+	         desiredCapabilities.setCapability("platform", "Windows 7");
+	         desiredCapabilities.setCapability("version", "31.0");
+	         desiredCapabilities.setCapability("maxDuration",5000);
+	         desiredCapabilities.setCapability("idleTimeout",1000);
+	         desiredCapabilities.setCapability("name", "AppCreationJob");
+
+	    
+		    driver = new RemoteWebDriver(new URL(constant.SAUCE_URL), desiredCapabilities); 
+	    //driver = new FirefoxDriver(firefoxProfile);
+	}
+
+@Test (dataProvider = "ESD_Logins")
+public void T1_login (String Add , 
+		          String City,
+		          String State,
+		          String ZipCode,
+		          String StateCode,
+		          String uname,
+		          String DOB,
+		          String SEP,
+		          String SEP_Type,
+		          String State_Name,
+		          String TenantID,
+		          String Income,
+		          String ExecuteFlag,
+		          String FFMFlag,
+		          String AppID,
+		          String Status
+		          
+		          ) throws InterruptedException, IOException  {
+
+	System.setProperty("org.apache.commons.logging.Log","org.apache.commons.logging.impl.Jdk14Logger");  
+	Exceldataconfig excelfile = new Exceldataconfig(constant.Datafilepath);	
+	ObjectMap objmap = new ObjectMap (constant.ObjectPath);	
+	if(ExecuteFlag.startsWith("N")){
+        throw new SkipException("Skipping this exception");
+     }
+	if(ExecuteFlag.startsWith("Y") ){
+		
+		 fname =RandomStringGen.generateString(17)	;
+		 lname = RandomStringGen.generateString(15)	;
+		
+		
+	///environment specification
+
+/*		
+		driver.get(constant.FilePath); //Imp1A URL  Change the environment in TestEnvironment package and Regions class	
+String selectLinkOpeninNewTab = Keys.chord(Keys.CONTROL,"t");
+
+driver.findElement(By.xpath(constant.DE_Env)).sendKeys(selectLinkOpeninNewTab);  //Change env here
+driver.navigate().to(constant.URL);//OPen English Envrinonment link
+driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
+driver.findElement(By.cssSelector("body")).sendKeys(Keys.CONTROL +"t");
+driver.navigate().to(constant.MX_URL);//OPen Spanish Envrinonment link
+driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);		
+driver.findElement(By.cssSelector("body")).sendKeys(Keys.CONTROL +"t");
+driver.get(constant.FilePath);	
+//Direct Enrollment
+if(FFMFlag.startsWith("DE")) 
+{
+	//Pass SAML Token
+		WebElement SAMLTOKENtextarea = (WebElement) ((JavascriptExecutor) driver).executeScript(constant.DEClearTextField);
+		SAMLTOKENtextarea.clear();
+		JavascriptExecutor myExecutor = ((JavascriptExecutor) driver);
+		myExecutor.executeScript(constant.SAMLCode, SAMLTOKENtextarea);
+		Thread.sleep(10000);
+
+	//Navigate to DE 	
+			WebElement BrokerServiceBtn = (WebElement) ((JavascriptExecutor) driver).executeScript(constant.DETokenForm); // Change here
+			BrokerServiceBtn.click();
+
+
+	Thread.sleep(10000);
+
+	//Log in 
+	WebElement deelement = driver.findElement(By.xpath("//a[@class='btn btn-success btn-lg spacer-top40']"));
+	JavascriptExecutor executor = (JavascriptExecutor) driver;
+	executor.executeScript ("arguments[0].click();" , deelement);
+
+
+
+	//String Email = new String(excelfile.getData(0, 1,5));  //read email address from excel file lookupdata
+
+	driver.findElement(By.xpath("//input[@name='username']")).sendKeys(uname);  //Enter UserID
+	driver.findElement(By.xpath("//input[@name='password']")).sendKeys("Test123#"); //Enter password
+	driver.findElement(By.xpath("//button[@aria-label='Log in']")).click();
+
+
+				
+	  //System.out.println("User ID"+": "+Email);
+		((JavascriptExecutor) driver).executeScript("scroll(0,-250);");	
+	Thread.sleep(3000);
+
+	//String DOB =  new String(excelfile.getData(0,1,6));			
+	//String StateCode = new String(excelfile.getData(0, 1,4));
+
+	Select istdropdown   = new Select (driver.findElement(By.id("homeState-aria-id-4")));
+	istdropdown.selectByValue(StateCode);
+
+		WebElement BtnLgn = driver.findElement(By.xpath("//a[@class='btn btn-success btn-lg spacer-top40']"));
+		JavascriptExecutor executor1 = (JavascriptExecutor) driver;
+		executor1.executeScript ("arguments[0].click();" , BtnLgn);
+
+		
+
+	Thread.sleep(3000);
+	driver.navigate().to(constant.IndAppURL1+StateCode+constant.IndAppURL2);
+	Thread.sleep(8000);
+
+	Select Year = new Select(driver.findElement(By.xpath("//select[@title='Select Year']")));
+	Year.selectByVisibleText(constant.CYear);
+
+	Select StDropdown  =  new Select(driver.findElement(By.xpath("//select[@title='Select State']")));
+	StDropdown.selectByVisibleText(StateCode); 
+
+	driver.findElement(By.xpath("//button[contains(@id,'Apply')]")).click();
+	driver.findElement(By.xpath("//button[contains(.,'NEXT')]")).click();
+	driver.findElement(By.xpath("//input[contains(@id,'checkbox_1')]")).click();
+	driver.findElement(By.xpath("//input[contains(@id,'checkbox_2')]")).click();
+	driver.findElement(By.xpath("//button[contains(.,'Take me to the application')]")).click();
+
+	Thread.sleep(5000);
+
+	driver.navigate().to(constant.IndAppURL1+StateCode+constant.IndAppURL3);
+
+	Thread.sleep(15000);
+	//GetStarted Page
+	WebElement elemnt2 =	driver.findElement(By.xpath("//button[@id='getStartedNextButton']"));
+	 JavascriptExecutor executor2 = (JavascriptExecutor) driver;
+	 executor2.executeScript ("arguments[0].click();" , elemnt2);
+	 
+	 Thread.sleep(10000);
+	    driver.findElement(By.xpath("//label[@for='privacyPolicyAgree']")).click();
+		driver.findElement(By.xpath("//label[contains(@for,'proofAgree')]")).click();
+		driver.findElement(By.xpath("//button[@id='privacyPolicySaveContinue']")).click();	
+		 Thread.sleep(5000);	
+		driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);		
+		driver.findElement(By.xpath("//label[@for='contactAddressHomeNo']")).click();			
+		
+	Thread.sleep(5000);	
+	
+} */
+if(FFMFlag.startsWith("FFM"))  {
+	
+driver.get(constant.URL);
+	
+	Thread.sleep(5000);
+	driver.navigate().to(constant.FFMLogin);
+	Thread.sleep(5000);
+	driver.findElement(By.xpath("//input[@name='username']")).sendKeys(uname);  //Enter UserID
+	Thread.sleep(5000);
+	driver.findElement(By.xpath("//input[@name='password']")).sendKeys("Test123#"); //Enter password
+	Thread.sleep(5000);
+	driver.findElement(By.xpath("//button[@aria-label='Log in']")).click();
+	Thread.sleep(5000);
+	driver.navigate().to(constant.FFMLandingPage);
+	Thread.sleep(8000);
+	
+
+
+Select Year = new Select(driver.findElement(By.xpath("//select[@title='Select Year']")));
+Year.selectByVisibleText(constant.CYear);
+
+Select StDropdown  =  new Select(driver.findElement(By.xpath("//select[@title='Select State']")));
+StDropdown.selectByVisibleText(StateCode); 
+
+driver.findElement(By.xpath("//button[contains(@id,'Apply')]")).click();
+driver.findElement(By.xpath("//button[contains(.,'NEXT')]")).click();
+driver.findElement(By.xpath("//input[contains(@id,'checkbox_1')]")).click();
+driver.findElement(By.xpath("//input[contains(@id,'checkbox_2')]")).click();
+driver.findElement(By.xpath("//button[contains(.,'Take me to the application')]")).click();
+
+Thread.sleep(5000);
+
+driver.navigate().to(constant.IndAppURL1+StateCode+constant.IndAppURL3);
+
+Thread.sleep(15000);
+//GetStarted Page
+			WebElement elemnt2 =	driver.findElement(By.xpath("//button[@id='getStartedNextButton']"));
+			 JavascriptExecutor executor2 = (JavascriptExecutor) driver;
+			 executor2.executeScript ("arguments[0].click();" , elemnt2);
+			 
+			 Thread.sleep(10000);
+			    driver.findElement(By.xpath("//label[@for='privacyPolicyAgree']")).click();
+				driver.findElement(By.xpath("//label[contains(@for,'proofAgree')]")).click();
+				driver.findElement(By.xpath("//button[@id='privacyPolicySaveContinue']")).click();	
+				 Thread.sleep(5000);	
+				driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);		
+				driver.findElement(By.xpath("//label[@for='contactAddressHomeNo']")).click();			
+				
+		Thread.sleep(5000);		
+		
+}
+if(FFMFlag.startsWith("ESD"))
+{
+	driver.navigate().to(constant.ESDLanding);
+		
+	Thread.sleep(15000);
+	
+	
+	driver.findElement(By.xpath("//input[@id='acceptButton']")).click();
+	
+	Thread.sleep(5000);
+//driver.findElement(By.xpath("//a[@class='cmsButtonLogin']")).click();
+	
+	Thread.sleep(5000);
+	
+	driver.findElement(By.xpath("//input[@id='input_userID']")).sendKeys(constant.ESDLogin);
+	
+	Thread.sleep(5000);
+	
+	driver.findElement(By.xpath("//input[@id='input-password']")).sendKeys(constant.ESDPw);
+	
+	Thread.sleep(5000);
+	
+	driver.findElement(By.xpath("//input[@id='buttonUserID']")).click();
+	
+	Thread.sleep(5000);
+						
+	
+Thread.sleep(5000);	
+
+driver.findElement(By.xpath("//a[contains(.,'Individual Application')]")).click();
+Thread.sleep(2000);
+
+driver.findElement(By.xpath("//a[@class='startNewPaperApplicationsLink']")).click();
+Thread.sleep(2000);
+Select iEsdCoverageYearDropdown = new Select(driver.findElement(By.xpath("//select[@id='startNewAppModalCoverageYear']")));
+       iEsdCoverageYearDropdown.selectByVisibleText(constant.CYear);
+    
+       Thread.sleep(5000);
+       Select iStDropDown = new Select(driver.findElement(By.xpath("//select[@class='ffmTenantStateDropdown']")))  ;
+	   iStDropDown.selectByVisibleText(StateCode);
+	   
+	   Thread.sleep(5000);
+	   	   
+	   driver.findElement(By.xpath("//button[@id='startNewApplicationSubmit']")).click();
+	   Thread.sleep(10000);
+	   String parentWindow = driver.getWindowHandle();
+		Set<String> handles =  driver.getWindowHandles();
+		Thread.sleep(2000);
+for(String windowHandle  : handles)
+{
+		 if(!windowHandle.equals(parentWindow))
+{
+		          driver.switchTo().window(windowHandle);
+		    Thread.sleep(8000);
+		    
+		   
+			Thread.sleep(15000);
+			//GetStarted Page
+						WebElement CCRelemnt2 =	driver.findElement(By.xpath("//button[@id='getStartedNextButton']"));
+						 JavascriptExecutor CCRexecutor2 = (JavascriptExecutor) driver;
+						 CCRexecutor2.executeScript ("arguments[0].click();" , CCRelemnt2);
+						 
+						 Thread.sleep(10000);
+						    
+		  
+							driver.findElement(By.xpath("//input[@id='contactFirstName']")).sendKeys(fname);
+							
+							driver.findElement(By.xpath("//input[@id='contactLastName']")).sendKeys(lname);
+							
+							driver.findElement(By.id("contactDateOfBirth")).click();
+							driver.findElement(By.id("contactDateOfBirth")).sendKeys(DOB);
+							driver.findElement(By.id("contactEmailAddress")).sendKeys("ccr"+System.currentTimeMillis()+"@yopmail.com");
+									
+}}
+	   
+	   
+	   
+}
+				
+if(FFMFlag.startsWith("CCR")) 
+{
+		//Pass CCR SAML Token
+			WebElement CCRSAMLTOKENtextarea = (WebElement) ((JavascriptExecutor) driver).executeScript(constant.CCRClearTextField);
+			CCRSAMLTOKENtextarea.clear();
+			JavascriptExecutor myExecutor = ((JavascriptExecutor) driver);
+			myExecutor.executeScript(constant.CCRSAML, CCRSAMLTOKENtextarea);
+			Thread.sleep(10000);
+
+		//Navigate to CCR 	
+				
+			
+			WebElement CCRServiceBtn = (WebElement) ((JavascriptExecutor) driver).executeScript(constant.CCRTokenForm); // Change here
+				CCRServiceBtn.click();
+				Thread.sleep(5000);
+				
+				String parentWindow = driver.getWindowHandle();
+				Set<String> handles =  driver.getWindowHandles();
+				Thread.sleep(2000);
+    for(String windowHandle  : handles)
+	{
+				 if(!windowHandle.equals(parentWindow))
+		 {
+				          driver.switchTo().window(windowHandle);
+				    Thread.sleep(8000);
+				    
+				    
+				    Select CCRYear = new Select(driver.findElement(By.xpath("//select[@title='Select Year']")));
+					CCRYear.selectByVisibleText(constant.CYear);
+					
+					Select CCRStDropdown  =  new Select(driver.findElement(By.xpath("//select[@title='Select State']")));
+					CCRStDropdown.selectByVisibleText(StateCode); 
+
+					driver.findElement(By.xpath("//button[contains(@id,'Apply')]")).click();
+					driver.findElement(By.xpath("//button[contains(.,'NEXT')]")).click();
+					driver.findElement(By.xpath("//input[contains(@id,'checkbox_1')]")).click();
+					driver.findElement(By.xpath("//input[contains(@id,'checkbox_2')]")).click();
+					driver.findElement(By.xpath("//button[contains(.,'Take me to the application')]")).click();
+
+					Thread.sleep(5000);
+
+					driver.navigate().to(constant.IndAppURL1+StateCode+constant.IndAppURL3);
+
+					Thread.sleep(15000);
+					//GetStarted Page
+								WebElement CCRelemnt2 =	driver.findElement(By.xpath("//button[@id='getStartedNextButton']"));
+								 JavascriptExecutor CCRexecutor2 = (JavascriptExecutor) driver;
+								 CCRexecutor2.executeScript ("arguments[0].click();" , CCRelemnt2);
+								 
+								 Thread.sleep(10000);
+								    driver.findElement(By.xpath("//label[@for='privacyPolicyAgree']")).click();
+									driver.findElement(By.xpath("//label[contains(@for,'proofAgree')]")).click();
+									driver.findElement(By.xpath("//button[@id='privacyPolicySaveContinue']")).click();	
+									 Thread.sleep(5000);	
+									driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);	
+									Thread.sleep(20000);
+				  
+									driver.findElement(By.xpath("//input[@id='contactFirstName']")).sendKeys("PK");
+									
+									driver.findElement(By.xpath("//input[@id='contactLastName']")).sendKeys("Barnes");
+									
+									driver.findElement(By.id("contactDateOfBirth")).click();
+									driver.findElement(By.id("contactDateOfBirth")).sendKeys(DOB);
+									String CCREmailAddress= "ccr"+System.currentTimeMillis()+"@message-checker.appspot.com";
+									driver.findElement(By.id("contactEmailAddress")).sendKeys(CCREmailAddress);
+									
+				
+		 }}
+	}			
+	
+	
+//ContactInformation
+//Read State from zipcode data file		
+
+
+
+
+
+driver.findElement(By.xpath("//input[@id='contactAddressStreetName1']")).sendKeys(Add);
+driver.findElement(By.xpath("//input[@id='contactAddressCity']")).sendKeys(City);
+Select St = new Select(driver.findElement(By.id("contactAddressState")));
+
+
+St.selectByVisibleText(State);
+Thread.sleep(5000);
+driver.findElement(By.xpath("//input[@id='contactAddressZip']")).sendKeys(ZipCode);
+Thread.sleep(10000);	
+
+try {
+	driver.findElement(By.xpath("//label[@for='contactMailingAddressSameNo']")).click();
+	Thread.sleep(2000);
+	driver.findElement(By.xpath("//label[@for='mailingAddressSameContactNo']")).click();
+	driver.findElement(By.xpath("//input[@id='contactMailingAddressStreetName1']")).sendKeys(Add);
+	driver.findElement(By.xpath("//input[@id='contactMailingAddressCity']")).sendKeys(City);
+	Select St1 = new Select(driver.findElement(By.id("contactMailingAddressState")));
+	
+	
+	St1.selectByVisibleText(State);
+	Thread.sleep(5000);
+	driver.findElement(By.xpath("//input[@id='contactMailingAddressZip']")).sendKeys(ZipCode);
+	Thread.sleep(10000);	
+	driver.findElement(By.xpath("//label[@for='contactPreferredNumberYes']")).click();
+	
+	Select phoneCnt = new Select(
+			driver.findElement(By.xpath("//select[@id='contactPhoneSameMyAccountTypePrimary']")));
+	phoneCnt.selectByVisibleText("Home");
+} catch (Exception e2) {
+	// TODO Auto-generated catch block
+	driver.findElement(By.xpath("//input[@id='contactMailingAddressStreetName1']")).sendKeys(Add);
+	driver.findElement(By.xpath("//input[@id='contactMailingAddressCity']")).sendKeys(City);
+	Select St1 = new Select(driver.findElement(By.id("contactMailingAddressState")));
+	
+	
+	St1.selectByVisibleText(State);
+	Thread.sleep(5000);
+	driver.findElement(By.xpath("//input[@id='contactMailingAddressZip']")).sendKeys(ZipCode);
+	Thread.sleep(10000);	
+	driver.findElement(By.id("contactPhone")).sendKeys("324-331-6785");
+	
+	Select ccrphoneType = new Select(driver.findElement(By.id("contactPhoneTypePrimary")));
+	ccrphoneType.selectByVisibleText("Home");
+}
+
+
+Thread.sleep(5000);	
+			driver.findElement(By.xpath("//label[@for='noticesOnlineNoRadio']")).click();
+			
+			//driver.findElement(By.xpath("//label[contains(.,'Other address')]")).click();
+			
+			
+			
+			driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS); //wait for 10 seconds to load
+			
+		    
+Thread.sleep(5000);
+		    
+			driver.findElement(By.id("contactInformationSaveContinue")).click();		
+			Thread.sleep(5000);
+			//driver.findElement(By.id("finishAddressValidation")).click();			
+					
+//	catch (Exception e) {				
+//								
+//						
+//							driver.findElement(By.id("contactFirstName")).sendKeys("Susan");
+//							driver.findElement(By.id("contactLastName")).sendKeys("Griffith");
+//							driver.findElement(By.id("contactDateOfBirth")).click();
+//							driver.findElement(By.id("contactDateOfBirth")).sendKeys(DOB);
+//							driver.findElement(By.id("contactEmailAddress")).sendKeys(Email);
+//							
+//							
+//							
+//							
+//								    //driver.findElement(By.xpath("//label[contains(@for,'contactAddressHomeNo')]")).click();
+//									driver.findElement(By.xpath("//input[@id='contactAddressStreetName1']")).sendKeys(excelfile.getData(0, 1, 0));  //street
+//								    driver.findElement(By.xpath("//input[@id='contactAddressCity']")).sendKeys(excelfile.getData(0, 1, 1)); //city
+//								    Select ContStateDropdown = new Select(driver.findElement(By.xpath("//select[@id='contactAddressState']")));
+//								           ContStateDropdown.selectByVisibleText(excelfile.getData(0, 1,2));
+//								           String Zipcode = new String(excelfile.getData(0, 1,3));  //read email address from excel file lookupdata
+//								    driver.findElement(By.xpath("//input[@id='contactAddressZip']")).sendKeys(Zipcode); ///read zip code from excel file
+//								    
+//								    driver.findElement(By.xpath("//label[@for='contactMailingAddressSameYes']")).click(); 
+//								   //driver.findElement(By.xpath("//label[@for='contactPreferredNumberYes']")).click();
+//								    driver.findElement(By.id("contactPhone")).sendKeys("2345678767");			
+//												
+//								Select phoneCnt = new Select(driver.findElement(By.xpath("//select[@id='contactPhoneTypePrimary']")));
+//								       phoneCnt.selectByVisibleText("Home");
+//								    driver.findElement(By.xpath("//label[@for='noticesOnlineNoRadio']")).click();						
+//					}
+	//Click Save and Continue.    
+			    
+    
+	Thread.sleep(5000);
+//Agent Broker Assistance
+			    driver.findElement(By.id("navAssistorTypeNone")).click();
+			    Thread.sleep(2000);
+  //Agent Broker Assistance - Save And Continue
+			     WebElement navigatorAssistance =	driver.findElement(By.xpath("//button[@id='navigatorAssistorSaveContinue']"));
+				 JavascriptExecutor navigator = (JavascriptExecutor) driver;
+				 navigator.executeScript ("arguments[0].click();" , navigatorAssistance);
+				 Thread.sleep(2000);		
+				 
+//Help Applying for coverage 
+			      driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
+			        
+
+			      try {
+						Select iDropDownByValue = new Select(driver.findElement(By.xpath("//select[@id='navQnsQn1']")));
+						               
+	Thread.sleep(2000);
+						  iDropDownByValue.selectByIndex(2);
+						  Thread.sleep(2000);
+							driver.findElement(By.id("navQnsAns1")).click();
+							driver.findElement(By.id("navQnsAns1")).clear();
+							driver.findElement(By.id("navQnsAns1")).sendKeys("New York City");
+							
+	//Click Save and COntinue      
+							 WebElement HelpApplying =	driver.findElement(By.xpath("//button[@id='navigatorAssistorQuestionsSaveContinue']"));
+							 JavascriptExecutor navigator1 = (JavascriptExecutor) driver;
+							 navigator1.executeScript ("arguments[0].click();" , HelpApplying);
+							 
+							 Thread.sleep(5000);
+							 driver.findElement(By.xpath("//label[@for='healthCoverageYes']")).click();            
+							  
+							 Thread.sleep(2000);   
+							 
+							 //save and continue
+							         WebElement FAnonFA =	driver.findElement(By.xpath("//button[@id='financialAssistanceSaveContinue']"));
+									 JavascriptExecutor navigator2 = (JavascriptExecutor) driver;
+									 navigator2.executeScript ("arguments[0].click();" , FAnonFA);  	        
+									 Thread.sleep(5000);
+					} catch (Exception e3) {
+						// TODO Auto-generated catch block
+						driver.findElement(By.xpath("//label[@for='healthCoverageYes']")).click();            
+						  Thread.sleep(2000);   
+						 //save and continue
+						         WebElement FAnonFA =	driver.findElement(By.xpath("//button[@id='financialAssistanceSaveContinue']"));
+								 JavascriptExecutor navigator2 = (JavascriptExecutor) driver;
+								 navigator2.executeScript ("arguments[0].click();" , FAnonFA);  	        
+								 Thread.sleep(5000);
+					}
+			
+	Thread.sleep(10000);				 
+		
+			        String ApplicationID = driver.findElement(By.xpath("//span[@id='applicationIdSpan']")).getText();
+			        
+Thread.sleep(2000);  
+
+//take screenshots FA/non FA         
+					
+					
+Thread.sleep(5000);  
+					
+					
+//FA or Non-FA	        
+					  driver.findElement(By.xpath("//label[@for='healthCoverageYes']")).click();            
+					  Thread.sleep(2000);   
+					 //save and continue
+					         WebElement FAnonFA =	driver.findElement(By.xpath("//button[@id='financialAssistanceSaveContinue']"));
+							 JavascriptExecutor navigator2 = (JavascriptExecutor) driver;
+							 navigator2.executeScript ("arguments[0].click();" , FAnonFA);  	        
+							 Thread.sleep(5000);
+					
+					 //1HH Primary Applicant
+					         driver.findElement(By.xpath("//label[@for='faSelf']")).click();;
+					         Thread.sleep(2000);
+					         //save and continue
+					         WebElement HH =	driver.findElement(By.xpath("//button[@id='filerPreferencesSaveContinue']"));
+							 JavascriptExecutor navigator3 = (JavascriptExecutor) driver;
+							 navigator3.executeScript ("arguments[0].click();" , HH);  
+							 Thread.sleep(2000);
+					 
+					 //Health Coverage        
+					         
+					        
+					        
+					 //Edit Date of birth
+					         driver.findElement(By.xpath("//button[contains(.,'EDIT')]")).click();
+					         driver.findElement(By.id("editApplicantFirstName0")).clear();
+					         driver.findElement(By.id("editApplicantFirstName0")).sendKeys("PK");
+					         driver.findElement(By.id("editApplicantLastName0")).clear();
+					         driver.findElement(By.id("editApplicantLastName0")).sendKeys("BARNES");
+					         
+					         driver.findElement(By.id("editApplicantDateOfBirth0")).sendKeys(Keys.chord(Keys.CONTROL, "a"), DOB);
+							 Thread.sleep(2000);
+							 
+							 WebElement EditSave1 =	driver.findElement(By.xpath("//button[@id='editApplicantModalSaveButton']"));
+							 JavascriptExecutor Editsavenavigator1 = (JavascriptExecutor) driver;
+							 Editsavenavigator1.executeScript ("arguments[0].click();" , EditSave1); 
+					         Thread.sleep(5000);
+					    //Take Screenshot for HH
+					         	
+					         
+					          //click save and continue
+					          WebElement HhSummary =	driver.findElement(By.xpath("//button[@id='getStartedSummarySave']"));
+							 JavascriptExecutor navigator4 = (JavascriptExecutor) driver;
+							 navigator4.executeScript ("arguments[0].click();" , HhSummary);  
+							 Thread.sleep(5000);					
+							 try {
+									driver.findElement(By.xpath("//button[@id='medicareWarningModal_WarnModal_ContinueButton']")).click();
+									Thread.sleep(5000);
+									WebElement HhChapter =	driver.findElement(By.xpath("//button[@id='fahChapterNextButton']"));
+									 JavascriptExecutor HhchapterExecutor = (JavascriptExecutor) driver;
+									 HhchapterExecutor.executeScript ("arguments[0].click();" , HhChapter); 
+							 } 
+							 
+							 catch (Exception e1)
+					         
+					         {//FAH Chapter
+								 WebElement HhChapter =	driver.findElement(By.xpath("//button[@id='fahChapterNextButton']"));
+							 JavascriptExecutor HhchapterExecutor = (JavascriptExecutor) driver;
+							 HhchapterExecutor.executeScript ("arguments[0].click();" , HhChapter); 
+							 Thread.sleep(5000);  
+					  driver.findElement(By.xpath("//button[contains(.,'OK')]")).click();
+									
+								}
+							//FAH Chapter
+							   
+							 try {
+									driver.findElement(By.xpath("//button[contains(.,'OK')]")).click();
+									//FAH Gender
+									  driver.findElement(By.id("fahSexMale0")).click();
+									   Thread.sleep(2000);
+									   WebElement HhGenderSave =	driver.findElement(By.xpath("//button[@id='fahSexSave0']"));
+											 JavascriptExecutor HhGenderExecutor = (JavascriptExecutor) driver;
+											 HhGenderExecutor.executeScript ("arguments[0].click();" , HhGenderSave);
+								} catch (Exception e2) {
+									// TODO Auto-generated catch block
+									driver.findElement(By.id("fahSexMale0")).click();
+									 Thread.sleep(2000);
+									WebElement HhGenderSave =	driver.findElement(By.xpath("//button[@id='fahSexSave0']"));
+									 JavascriptExecutor HhGenderExecutor = (JavascriptExecutor) driver;
+									 HhGenderExecutor.executeScript ("arguments[0].click();" , HhGenderSave); 
+									
+									
+								}
+						//Enter Social
+							 
+					//driver.findElement(By.id("fahSSNTextboxForApplicant0")).sendKeys("872-90-8029");
+					
+						       Thread.sleep(4000);		
+						       
+					//FAHSecurity					
+						        WebElement FAHSN =	driver.findElement(By.xpath("//button[@id='fahSocialSecuritySave0']"));
+								 JavascriptExecutor FAHSNExecutor = (JavascriptExecutor) driver;
+								 FAHSNExecutor.executeScript ("arguments[0].click();" , FAHSN); 
+						        
+					//FAH PopUp no SN			 
+								
+								 WebElement FAHPopup =	 driver.findElement(By.xpath("//button[contains(.,'Continue without SSN')]"));
+								 JavascriptExecutor FAHPopUpExecutor = (JavascriptExecutor) driver;
+								 FAHPopUpExecutor.executeScript ("arguments[0].click();" , FAHPopup); 
+							
+					//US Citizen or NO
+								 driver.findElement(By.id("fahImmigrationIsCitizenRadioYes0")).click();
+								 
+								 Thread.sleep(5000);
+								 
+								 WebElement FAHImmigrationSave =	 driver.findElement(By.xpath("//button[@id='fahImmigrationSave0']"));
+								 JavascriptExecutor FAHImmiExecutor = (JavascriptExecutor) driver;
+								 FAHImmiExecutor.executeScript ("arguments[0].click();" , FAHImmigrationSave); 
+								 
+								 
+					//Tax file Yes or No for 1HH Application
+								 
+								 driver.findElement(By.id("fileTaxReturnYes0")).click();
+								 driver.findElement(By.id("isMarriedNo0")).click();
+								 driver.findElement(By.id("willClaimSeparateDependentsNo0")).click();
+								 driver.findElement(By.id("willBeClaimedAsDependentNo0")).click();
+								 		 
+								 Thread.sleep(3000);
+								 WebElement TaxStatusSave =	driver.findElement(By.xpath("//button[@id='fahGetTaxStatusSave0']"));
+								 JavascriptExecutor TaxStatusSaveExecutor = (JavascriptExecutor) driver;
+								 TaxStatusSaveExecutor.executeScript ("arguments[0].click();" , TaxStatusSave); 
+								 
+								 Thread.sleep(2000);
+					//FAH ParentCareTaker
+								 driver.findElement(By.id("fahParentCaretakerLiveWithChildrenRadioNo0")).click();
+								 
+								 Thread.sleep(2000);
+								 WebElement FAHCareTaker =	 driver.findElement(By.xpath("//button[@id='fahParentCaretakerSave0']"));
+								 JavascriptExecutor FAHCareTakerExecutor = (JavascriptExecutor) driver;
+								 FAHCareTakerExecutor.executeScript ("arguments[0].click();" , FAHCareTaker);
+								
+								 Thread.sleep(2000);
+					//FAH Race Save and Continue
+								 WebElement FAHRace =	 driver.findElement(By.xpath("//button[@id='fahRaceSaveContinue0']"));
+								 JavascriptExecutor FAHRaceExecutor = (JavascriptExecutor) driver;
+								 FAHRaceExecutor.executeScript ("arguments[0].click();" ,FAHRace);
+								 
+								 Thread.sleep(3000);
+								 
+					//CHIP Question No
+								 driver.findElement(By.id("medicaidDeniedQuestion_ListQuestionNONE_ChkBxListEntry")).click();
+								 
+								
+								 WebElement CHIP =	  driver.findElement(By.xpath("//button[@id='fahDisabilitySaveContinue']"));
+								 JavascriptExecutor CHIPExecutor = (JavascriptExecutor) driver;
+								 CHIPExecutor.executeScript ("arguments[0].click();" ,CHIP);
+								 Thread.sleep(3000);
+
+					//AmericanIndian Yes or NO
+								 driver.findElement(By.id("americanIndianAlaskanNativeNone")).click();
+								 
+								 
+								 WebElement AI =	  driver.findElement(By.xpath("//button[@id='fahAmericanIndianSaveContinue']"));
+								 JavascriptExecutor AIExecutor = (JavascriptExecutor) driver;
+								 AIExecutor.executeScript ("arguments[0].click();" ,AI);
+								 Thread.sleep(3000);
+						//Preganant question		 			 
+								 WebElement Preg =	  driver.findElement(By.xpath("//button[@id='fahAmericanIndianSaveContinue']"));
+								 JavascriptExecutor PregExecutor = (JavascriptExecutor) driver;
+								 PregExecutor.executeScript ("arguments[0].click();" ,Preg);
+								 Thread.sleep(2000);
+					//FAH Sumamry
+								 
+								 WebElement FAHSummary =	  driver.findElement(By.xpath("//button[@id='fahSummarySaveContinue']"));
+								 JavascriptExecutor FAHSummaryExecutor = (JavascriptExecutor) driver;
+								 FAHSummaryExecutor.executeScript ("arguments[0].click();" ,FAHSummary);
+								 Thread.sleep(2000);
+								 
+						//Income Section 
+								 
+								 WebElement IncomeNextBtn = driver.findElement(By.xpath("//button[@id='incomeWarningSaveContinue']"));
+								 JavascriptExecutor IncomeNextBtnExecutor = (JavascriptExecutor) driver;
+								 IncomeNextBtnExecutor.executeScript ("arguments[0].click();" ,IncomeNextBtn);
+								 Thread.sleep(30000);
+							
+								 //Source  - Job
+								 driver.findElement(By.xpath("//label[@for='additionalIncomeYes0']")).click();
+							Thread.sleep(2000);
+							
+							Select IncomeSource = new Select(driver.findElement(By.id("incomeTypeSelection")));
+							       IncomeSource.selectByVisibleText("Job");
+							       
+							       driver.findElement(By.xpath("//input[@id='jobEmployerName']")).sendKeys("Employer");				
+
+///CSR 1A -  150% FPL
+							       
+		 
+							       driver.findElement(By.xpath("//input[@id='jobIncomeAmount']")).sendKeys(Income);
+							       
+							Select IncomeFreq = new Select(driver.findElement(By.xpath("//select[@id='jobIncomeFrequency']")));
+							       IncomeFreq.selectByIndex(7);
+							       Thread.sleep(2000);
+							       
+							       WebElement IncomeSaveBtn = driver.findElement(By.xpath("//button[@id='addIncomeModalSaveButton']"));
+									 JavascriptExecutor IncomeSaveBtnExecutor = (JavascriptExecutor) driver;
+									 IncomeSaveBtnExecutor.executeScript ("arguments[0].click();" ,IncomeSaveBtn);
+									 Thread.sleep(2000);
+							       
+									 
+									 WebElement IncomeSaveCntue = driver.findElement(By.xpath("//button[@id='saveAdditionalMonthlyIncome0']"));
+									 JavascriptExecutor IncomeSaveCntueExecutor = (JavascriptExecutor) driver;
+									 IncomeSaveCntueExecutor.executeScript ("arguments[0].click();" ,IncomeSaveCntue);
+									 Thread.sleep(2000);	
+									 
+									 
+									// No Deductions
+										driver.findElement(By.id("addDeductionNo0")).click();
+										
+										
+										WebElement Deductions = driver.findElement(By.xpath("//button[@id='saveAddDeductions0']"));
+										 JavascriptExecutor DeductionsExecutor = (JavascriptExecutor) driver;
+										 DeductionsExecutor.executeScript ("arguments[0].click();" ,Deductions);
+										 Thread.sleep(2000);
+										 
+										 driver.findElement(By.id("calculatedAnnualIncomeYes0")).click();
+										 
+										 
+										 WebElement IncomeVErify = driver.findElement(By.xpath("//button[@id='saveAnnualIncomeInformation0']"));
+										 JavascriptExecutor IncomeVErifyExecutor = (JavascriptExecutor) driver;
+										 IncomeVErifyExecutor.executeScript ("arguments[0].click();" ,IncomeVErify);
+										 Thread.sleep(2000);
+										 
+						//Income Summary
+										 				
+										 WebElement IncomeSummry =  driver.findElement(By.xpath("//button[@id='savePersonalIncomeSummary0']"));
+										 JavascriptExecutor IncomeSummryExecutor = (JavascriptExecutor) driver;
+										 IncomeSummryExecutor.executeScript ("arguments[0].click();" ,IncomeSummry);
+										 Thread.sleep(2000);
+										 
+						  //Take Screenshot
+										  	
+										 
+										 WebElement IncomeSummrySave =  driver.findElement(By.xpath("//button[@id='saveIncomeSummary']"));
+										 JavascriptExecutor IncomeSummrySaveExecutor = (JavascriptExecutor) driver;
+										 IncomeSummrySaveExecutor.executeScript ("arguments[0].click();" ,IncomeSummrySave);
+										 Thread.sleep(2000);		 
+										 
+										 
+							//Additional Information SEP Questions
+										 				 
+										 WebElement SEPQuestionsNext =  driver.findElement(By.xpath("//button[@id='additionalInfoChapterNextButton']"));
+										 JavascriptExecutor SEPQuestionsNextExecutor = (JavascriptExecutor) driver;
+										 SEPQuestionsNextExecutor.executeScript ("arguments[0].click();" ,SEPQuestionsNext);
+										 Thread.sleep(2000);
+										 
+										 try {
+												driver.findElement(By.id("otherInsuranceNone0")).click();
+												 
+												 //Health Coverage None
+												 WebElement CoverageSaveCntnue =  driver.findElement(By.xpath("//button[@id='enrolledWithOtherInsuranceSave0']"));
+												 JavascriptExecutor CoverageSaveCntnueExecutor = (JavascriptExecutor) driver;
+												 CoverageSaveCntnueExecutor.executeScript ("arguments[0].click();" ,CoverageSaveCntnue);
+												 Thread.sleep(2000);
+												 
+												//ESI 
+												 driver.findElement(By.id("esiDetails0radio3b")).click();
+												 		 
+												
+												 WebElement ESISaveCntnue =   driver.findElement(By.xpath("//button[@id='esiDetailsSaveContinue0']"));
+												 JavascriptExecutor ESISaveCntnueExecutor = (JavascriptExecutor) driver;
+												 ESISaveCntnueExecutor.executeScript ("arguments[0].click();" ,ESISaveCntnue);
+												 Thread.sleep(2000);
+												 
+												 //future ESI
+												 driver.findElement(By.id("futureESIDetails0question-no")).click();
+												 
+												 WebElement FutureESISaveCntnue =   driver.findElement(By.xpath("//button[@id='futureESIDetailsSaveContinue0']"));
+												 JavascriptExecutor FutureESISaveCntnueExecutor = (JavascriptExecutor) driver;
+												 FutureESISaveCntnueExecutor.executeScript ("arguments[0].click();" ,FutureESISaveCntnue);
+												 Thread.sleep(2000);
+												
+												 //Enter phone no
+												 driver.findElement(By.id("employerContactInformationPhone1_0")).clear();
+												 Thread.sleep(5000);
+												  driver.findElement(By.id("employerContactInformationPhone1_0")).sendKeys("3322314323");
+												  Thread.sleep(5000);
+												  WebElement EmployerContSaveCntnue =   driver.findElement(By.xpath("//button[@id='employerContactInformationSaveContinue1_0']"));
+													 JavascriptExecutor EmployerContSaveCntnueExecutor = (JavascriptExecutor) driver;
+													 EmployerContSaveCntnueExecutor.executeScript ("arguments[0].click();" ,EmployerContSaveCntnue);
+													 Thread.sleep(2000);
+													 
+													 if(SEP_Type.startsWith("LMEC"))	{				 
+															//LMEC
+																 driver.findElement(By.id("sepLostInsurancePerson0")).click();
+																 Thread.sleep(5000);
+															//System.out.println(AdotionSEPEventDate);
+																	driver.findElement(By.id("sepLostInsurancePerson0Date")).sendKeys(SEP);
+																	Thread.sleep(5000);
+													 }		
+																	Thread.sleep(5000);
+																	WebElement SEPLostInsurancee =   driver.findElement(By.xpath("//button[@id='sepLostInsuranceSaveContinue']"));
+																	 JavascriptExecutor SEPLostInsuranceeExecutor = (JavascriptExecutor) driver;
+																	 SEPLostInsuranceeExecutor.executeScript ("arguments[0].click();" ,SEPLostInsurancee);
+																	 Thread.sleep(2000);
+							
+													 
+											} catch (Exception e1) {
+												// TODO Auto-generated catch block
+												if(SEP_Type.startsWith("LMEC"))	{				 
+													//MEC Future
+														 driver.findElement(By.id("sepProspectiveLostInsurancePerson0")).click();
+														 Thread.sleep(5000);	
+													//System.out.println(AdotionSEPEventDate);
+															driver.findElement(By.id("sepProspectiveLostInsurancePerson0Date")).sendKeys(SEP);
+												}		
+															Thread.sleep(5000);
+															WebElement SEPLostInsurancee =   driver.findElement(By.xpath("//button[@id='sepLostInsuranceSaveContinue']"));
+															 JavascriptExecutor SEPLostInsuranceeExecutor = (JavascriptExecutor) driver;
+															 SEPLostInsuranceeExecutor.executeScript ("arguments[0].click();" ,SEPLostInsurancee);
+															 Thread.sleep(2000);
+					}
+											
+										 
+										 
+//MECFSEP 
+if(SEP_Type.startsWith("MECF"))	{
+										 driver.findElement(By.id("sepProspectiveLostInsurancePerson0")).click();
+										 Thread.sleep(5000);
+											//System.out.println(AdotionSEPEventDate);
+											driver.findElement(By.id("sepProspectiveLostInsurancePerson0Date")).sendKeys(SEP);
+											Thread.sleep(5000);
+										 
+}	 
+									 WebElement MECFutureBtn =   driver.findElement(By.xpath("//button[@id='sepProspectiveLostInsuranceSaveContinue']"));
+									 JavascriptExecutor MECFutureBtnExecutor = (JavascriptExecutor) driver;
+									 MECFutureBtnExecutor.executeScript ("arguments[0].click();" ,MECFutureBtn);
+									 Thread.sleep(2000);										 
+										 
+								 
+											
+//Marriage SEP		 
+
+if(SEP_Type.startsWith("MARR"))	{
+	
+	driver.findElement(By.id("sepMarriedPerson0")).click();
+	Thread.sleep(5000);
+	//System.out.println(AdotionSEPEventDate);
+	driver.findElement(By.id("sepMarriedPerson0Date")).sendKeys(SEP);
+	Thread.sleep(5000);
+  
+}
+			WebElement MarriageSEPBtn =   driver.findElement(By.xpath("//button[@id='sepMarriedSaveContinue']"));
+			JavascriptExecutor MarriageSEPBtnExecutor = (JavascriptExecutor) driver;
+			MarriageSEPBtnExecutor.executeScript ("arguments[0].click();" ,MarriageSEPBtn);
+			Thread.sleep(2000);
+
+
+//Adoption SEP													 
+				
+if(SEP_Type.startsWith("ADOP"))	{	
+	driver.findElement(By.id("sepAdoptedPerson0")).click();
+	Thread.sleep(5000);
+	//String AdotionSEPEventDate = new String(excelfile.getData(0, 1, 7));
+	//System.out.println(AdotionSEPEventDate);
+	driver.findElement(By.id("sepAdoptedPerson0Date")).sendKeys(SEP);
+	 
+	Thread.sleep(5000);
+	
+		
+			
+	        
+}	
+	        WebElement AdotionSEPBtn =   driver.findElement(By.xpath("//button[contains(@id,'sepAdoptedSaveContinue')]"));
+			JavascriptExecutor AdotionSEPBtnExecutor = (JavascriptExecutor) driver;
+			AdotionSEPBtnExecutor.executeScript ("arguments[0].click();" ,AdotionSEPBtn);
+			Thread.sleep(2000);
+			
+
+//Immigration SEP	 
+			if(SEP_Type.startsWith("IMMI"))	{
+				driver.findElement(By.id("sepImmigrationPerson0")).click();
+				Thread.sleep(5000);
+				//System.out.println(AdotionSEPEventDate);
+				driver.findElement(By.id("sepImmigrationPerson0Date")).sendKeys(SEP);
+				Thread.sleep(5000);
+			
+				
+			}
+
+
+WebElement ImmiSEPBtn =   driver.findElement(By.xpath("//button[contains(@id,'sepImmigrationSaveContinue')]"));
+JavascriptExecutor ImmiSEPBtnExecutor = (JavascriptExecutor) driver;
+ImmiSEPBtnExecutor.executeScript ("arguments[0].click();" ,ImmiSEPBtn);
+Thread.sleep(2000);
+
+//Move SEP
+
+if(SEP_Type.startsWith("MOVE"))	{
+	driver.findElement(By.id("sepMovedPerson0")).click();
+	Thread.sleep(5000);
+	 driver.findElement(By.id("sepMovedForeignAddr0_ChkBxListEntry")).click();	
+	 Thread.sleep(2000);
+		//System.out.println(AdotionSEPEventDate);
+	 //driver.findElement(By.xpath("//input[@id='sepMovedPerson0Zipcode']"));
+	 driver.findElement(By.id("sepMovedPerson0Date")).sendKeys(SEP);
+	 
+	 Thread.sleep(5000);
+	 
+	// driver.findElement(By.xpath("//label[@for='sepMovedMecDiv0Question_YNQuestion_No']")).click();
+	 
+	 
+	
+}
+WebElement MoveSEPBtn =   driver.findElement(By.xpath("//button[contains(@id,'sepMovedSaveContinue')]"));
+JavascriptExecutor MoveSEPBtnExecutor = (JavascriptExecutor) driver;
+MoveSEPBtnExecutor.executeScript ("arguments[0].click();" ,MoveSEPBtn);
+Thread.sleep(2000);
+
+//Incar SEP
+if(SEP_Type.startsWith("INCAR"))	{
+
+	driver.findElement(By.id("sepIncarceratedPerson0")).click();
+	Thread.sleep(5000);
+	//System.out.println(AdotionSEPEventDate);
+	driver.findElement(By.id("sepIncarceratedPerson0Date")).sendKeys(SEP);
+	Thread.sleep(5000);
+ 
+	
+	
+}
+WebElement IncarSEPBtn =    driver.findElement(By.xpath("//button[contains(@id,'sepIncarceratedSaveContinue')]"));
+JavascriptExecutor IncarSEPBtnExecutor = (JavascriptExecutor) driver;
+IncarSEPBtnExecutor.executeScript ("arguments[0].click();" ,IncarSEPBtn);
+Thread.sleep(2000);
+
+//IRS Tax Credits Reconcile
+
+
+try {
+	 
+	WebElement TaxCreditBtn =   driver.findElement(By.xpath("//button[@id='reconcileTaxCreditSaveContinue0']"));
+	 JavascriptExecutor TaxCreditExecutor = (JavascriptExecutor) driver;
+	 TaxCreditExecutor.executeScript ("arguments[0].click();" ,TaxCreditBtn);
+	 Thread.sleep(2000);
+	 
+	 WebElement ReviewSignNextBtn =    driver.findElement(By.xpath("//button[contains(@id,'chapterPageNext')]"));
+	 JavascriptExecutor ReviewSignNextExecutor = (JavascriptExecutor) driver;
+	 ReviewSignNextExecutor.executeScript ("arguments[0].click();" ,ReviewSignNextBtn);
+	 Thread.sleep(2000);
+	 
+//Review and Sign NExt btn					 
+} catch (Exception e) {
+	// TODO Auto-generated catch block
+	WebElement ReviewSignNextBtn =    driver.findElement(By.xpath("//button[contains(@id,'chapterPageNext')]"));
+	 JavascriptExecutor ReviewSignNextExecutor = (JavascriptExecutor) driver;
+	 ReviewSignNextExecutor.executeScript ("arguments[0].click();" ,ReviewSignNextBtn);
+	 Thread.sleep(2000);
+}
+
+
+//Review APP Save and Continue
+
+
+WebElement ReviewAppBtn =    driver.findElement(By.xpath("//button[@id='reviewAppSaveContinue']"));
+JavascriptExecutor ReviewAppExecutor = (JavascriptExecutor) driver;
+ReviewAppExecutor.executeScript ("arguments[0].click();" ,ReviewAppBtn);
+Thread.sleep(2000);
+
+
+
+///After givign SEP
+
+
+//Attestation
+
+if(FFMFlag.startsWith("ESD"))	 {
+		
+	  driver.findElement(By.id("reviewAttestationsRadioIncarcerationYes")).click();
+	  driver.findElement(By.id("reviewAttestationsRadioTaxInfoUseYes")).click();	
+	 Thread.sleep(2000);
+	  WebElement AttestationSaveBtn =    driver.findElement(By.xpath("//button[@id='attestationSaveContinue']"));
+		 JavascriptExecutor AttestationSaveBtnExecutor = (JavascriptExecutor) driver;
+		 AttestationSaveBtnExecutor.executeScript ("arguments[0].click();" ,AttestationSaveBtn);
+		 Thread.sleep(2000);
+		 
+		 
+		 
+		 
+		 
+		 
+		 WebElement AppSubmit =     driver.findElement(By.xpath("//button[@id='reviewSignAndSubmitSaveContinue']"));
+		 JavascriptExecutor AppSubmitExecutor = (JavascriptExecutor) driver;
+		 AppSubmitExecutor.executeScript ("arguments[0].click();" ,AppSubmit);
+		 Thread.sleep(2000);
+		 driver.findElement(By.xpath("//button[@id='viewEligibility']")).click();
+			
+			Thread.sleep(5000);
+			driver.findElement(By.id("proceedToEnrollBtn")).click();
+			
+			Thread.sleep(6000);
+			
+				Thread.sleep(2000);
+			
+}
+	 
+if(FFMFlag.startsWith("CCR"))	{							 
+	  driver.findElement(By.id("reviewAttestationsRadioIncarcerationYes")).click();
+	  driver.findElement(By.id("reviewAttestationsRadioTaxInfoUseYes")).click();
+	  driver.findElement(By.id("reviewAttestationsRadioTellChangesYes")).click();
+	
+//Attestation Save and Continue
+	  
+	  
+	  WebElement AttestationSaveBtn =    driver.findElement(By.xpath("//button[@id='attestationSaveContinue']"));
+		 JavascriptExecutor AttestationSaveBtnExecutor = (JavascriptExecutor) driver;
+		 AttestationSaveBtnExecutor.executeScript ("arguments[0].click();" ,AttestationSaveBtn);
+		 Thread.sleep(2000);
+		 
+//Review and Submit Radio Button
+		 
+		 driver.findElement(By.id("reviewSignAndSubmitRadioYes")).click();
+		 driver.findElement(By.id("reviewSignAndSubmitTextSignature")).sendKeys("PK");
+
+				 
+//Submit App
+		
+		 WebElement AppSubmit =     driver.findElement(By.xpath("//button[@id='reviewSignAndSubmitSaveContinue']"));
+		 JavascriptExecutor AppSubmitExecutor = (JavascriptExecutor) driver;
+		 AppSubmitExecutor.executeScript ("arguments[0].click();" ,AppSubmit);
+		 Thread.sleep(2000);
+
+
+	
+driver.findElement(By.xpath("//button[@id='viewEligibility']")).click();
+	
+	Thread.sleep(5000);
+	driver.findElement(By.xpath("//button[@id='proceedToEnrollBtn']")).click();
+	
+	Thread.sleep(5000);
+	
+	
+   		
+   		
+   		System.out.println("NULL"+"   "+StateCode+"   "+ApplicationID+"    "+FFMFlag);	
+   		
+      
+	Thread.sleep(2000);
+
+
+}									
+
+
+
+
+if(FFMFlag.startsWith("FFM"))	{							 
+driver.findElement(By.id("reviewAttestationsRadioIncarcerationYes")).click();
+driver.findElement(By.id("reviewAttestationsRadioTaxInfoUseYes")).click();
+driver.findElement(By.id("reviewAttestationsRadioTellChangesYes")).click();
+
+//Attestation Save and Continue
+
+
+WebElement AttestationSaveBtn =    driver.findElement(By.xpath("//button[@id='attestationSaveContinue']"));
+JavascriptExecutor AttestationSaveBtnExecutor = (JavascriptExecutor) driver;
+AttestationSaveBtnExecutor.executeScript ("arguments[0].click();" ,AttestationSaveBtn);
+Thread.sleep(2000);
+
+//Review and Submit Radio Button
+
+driver.findElement(By.id("reviewSignAndSubmitRadioYes")).click();
+driver.findElement(By.id("reviewSignAndSubmitTextSignature")).sendKeys("PK");
+
+//Submit App
+
+WebElement AppSubmit =     driver.findElement(By.xpath("//button[@id='reviewSignAndSubmitSaveContinue']"));
+JavascriptExecutor AppSubmitExecutor = (JavascriptExecutor) driver;
+AppSubmitExecutor.executeScript ("arguments[0].click();" ,AppSubmit);
+Thread.sleep(2000);
+
+
+
+driver.findElement(By.xpath("//button[@id='viewEligibility']")).click();
+
+Thread.sleep(5000);
+driver.findElement(By.xpath("//button[@id='proceedToEnrollBtn']")).click();
+
+Thread.sleep(5000);
+
+
+
+
+System.out.println(uname+"   "+StateCode+"   "+ApplicationID+"    "+FFMFlag);	
+
+
+Thread.sleep(2000);
+
+
+}
+if(FFMFlag.startsWith("DE")) {
+	
+driver.findElement(By.id("reviewAttestationsRadioIncarcerationYes")).click();
+driver.findElement(By.id("reviewAttestationsRadioTaxInfoUseYes")).click();
+driver.findElement(By.id("reviewAttestationsRadioTellChangesYes")).click();
+
+//Attestation Save and Continue
+
+
+WebElement AttestationSaveBtn =    driver.findElement(By.xpath("//button[@id='attestationSaveContinue']"));
+JavascriptExecutor AttestationSaveBtnExecutor = (JavascriptExecutor) driver;
+AttestationSaveBtnExecutor.executeScript ("arguments[0].click();" ,AttestationSaveBtn);
+Thread.sleep(2000);
+
+//Review and Submit Radio Button
+
+driver.findElement(By.id("reviewSignAndSubmitRadioYes")).click();
+driver.findElement(By.id("reviewSignAndSubmitTextSignature")).sendKeys("PK");
+
+//Submit App
+
+WebElement AppSubmit =     driver.findElement(By.xpath("//button[@id='reviewSignAndSubmitSaveContinue']"));
+JavascriptExecutor AppSubmitExecutor = (JavascriptExecutor) driver;
+AppSubmitExecutor.executeScript ("arguments[0].click();" ,AppSubmit);
+Thread.sleep(2000);
+
+
+
+driver.findElement(By.xpath("//button[@id='viewEligibility']")).click();
+
+Thread.sleep(5000);
+
+
+
+driver.findElement(By.id("proceedToEnrollBtn")).click();
+	
+	
+
+	Thread.sleep(10000);		
+//String title = driver.getCurrentUrl();			
+if(driver.getPageSource().contains("Signature Validation Success")) {
+		  
+		
+		System.out.println(uname+"   "+StateCode+"   "+ApplicationID+"    "+FFMFlag);	
+	}
+	
+}
+	
+String Pass = "Passed";
+DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+Date date = new Date(); 
+
+	String [] valuetowrite = {uname,ApplicationID,StateCode,Income,ZipCode,SEP_Type,SEP,Pass,dateFormat.format(date),FFMFlag};
+	 writeexcelfile objExcelFile = new writeexcelfile();
+
+     //Write the file using file name, sheet name and the data to be filled
+
+     objExcelFile.writeExcel("C:\\Users\\T-PSadagopan\\Desktop\\Notices","ExportExcel.xlsx","Sheet1",valuetowrite);
+	
+	//System.out.println(uname+"   "+StateCode+"   "+ApplicationID+"    "+FFMFlag);	
+}
+
+
+
+
+
+
+
+Thread.sleep(2000);
+
+}
+											
+
+	
+	
+	
+
+	@DataProvider (name="ESD_Logins")
+	public Object [] [] readExcel() throws BiffException, IOException {
+		//public static void main(String args[]) throws BiffException, IOException {
+	// TODO Auto-generated method stub
+
+		File f = new File("C:\\Users\\T-PSadagopan\\Desktop\\Selenium_ExcelDataFiles_Prem\\Data_File.xls");
+	  Workbook wb = Workbook.getWorkbook(f);
+	Sheet s = wb.getSheet("Sheet1");
+	
+	
+	int rows = s.getRows();
+	int columns = s.getColumns();
+	
+	String inputData[] [] = new String [rows] [columns];
+	
+	
+for (int i = 0 ;i < rows ;i++)
+		
+	{  for(int j =0 ; j < 15 ; j++)  {
+	     
+		Cell c =  s.getCell(j,  i);
+	   
+		inputData [i][j] = c.getContents();
+	  
+//System.out.println(inputData[i][j]);
+	   
+	}
+	}
+//return inputData;
+return inputData;
+
+	}
+	
+	
+	@AfterMethod
+	public void writeResult(ITestResult result)
+	{
+	    try
+	    {
+	        if(result.getStatus() == ITestResult.FAILURE)
+	        {
+	            
+	            //System.out.println("Log Message:: @AfterMethod: Method-"+methodName+"- has Failed");
+	            //Do your excel writing stuff here
+	        	
+	        	
+	             Thread.sleep(5000);
+	             
+
+	        }
+	        else if(result.getStatus() == ITestResult.SKIP)
+	        {
+	            //System.out.println(" This testcase is skipped. Please update the flag to run");
+	        	
+	        	driver.close();
+	        	driver.quit();
+				
+	        }
+	        else if(result.getStatus() == ITestResult.SUCCESS)
+	        {
+	            //System.out.println("This test case is skipped");
+	        	
+	        	
+	        	
+	        	
+	        }
+	    }
+	    catch(Exception e)
+	    {
+	        //System.out.println("\nLog Message::@AfterMethod: Exception caught");
+	        e.printStackTrace();
+	    }
+
+	}
+	@AfterClass
+	public void T4_ExitBrowser() {
+	driver.close();
+	driver.quit();
+
+	}
+}
